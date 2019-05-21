@@ -1,6 +1,3 @@
-#Hi Sam
-
-
 ##pipeline for my honour's thesis 
 #Centroid and alignment code adapted from Matthew Orton https://github.com/m-orton/Evolutionary-Rates-Analysis-Pipeline/blob/master/EvolutionaryComparisonPipelineSmallTaxa.R
 #Sequence trimming and outlier removal functions adapted from Jacqueline May https://github.com/jmay29/phylo/blob/master/refSeqTrim.R
@@ -368,7 +365,7 @@ names(dnaStringSet3[[16]]) <- alignmentNames[[16]]
 #but since they both rely on the index, we can keep it simple.
 
 for(i in 1:16){
-	names(dnaStringSet3[[i]] = alignmentNames[[i]] )
+	names(dnaStringSet3[[i]]) = alignmentNames[[i]] 
 }
 
 
@@ -419,6 +416,7 @@ FamilyDNA <- rbind(FamilyDNA1, FamilyDNA2, FamilyDNA3, FamilyDNA4, FamilyDNA5, F
 #Cam's refactoring of above change to dataframes
 
 FamilyDNA = lapply(dnaStringSet4, as.data.frame)
+
 
 ###########################
 
@@ -472,7 +470,7 @@ dfFamilyDNA <- dfFamilyDNA[-referencefind16, ]
 #this function isn't really necessary, but if you start repetitive strings with
 #more then 15 instances then the need to automate arises. Plus it helps us learn about
 #iteration
-get_reference_names =function(top_ref_num = 15){
+get_reference_names = function(top_ref_num = 15){
 	#the highest number used in the references is passed in, default is 15
 	ref_names = c()	
 	prefix = "reference"
@@ -742,11 +740,11 @@ model_fit = lapply(env_out, function(x){
 # this is done so we can hardcode the k and inv paramaters
 # if there were just the two variables, could use only mapply
 # note the variable names aren't the best here
-pml_wrapper = function(tree, phylo){
-	return(pml(tree, phylo, k=4, inv= 0.4681883))
+pml_wrapper = function(tree, phylo, inv){
+	return(pml(tree, phylo, k=4, inv))
 }
 
-ml_out = mapply(pml_wrapper, tree_outs, phylo_dat)
+ml_out = mapply(pml_wrapper, tree_outs, phylo_dat, inv_are_hiding)
 
 ml_out = lapply(ml_out, function(x){
 	optim.pml(x, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "HKY")
@@ -756,6 +754,7 @@ ml_trees = = lapply(ml_out, function(x){
 	x['tree',]
 	})
 
+#here is a single use example of the original that I was using to write the functions above
 phyDatDyt <- read.phyDat("AlignmentDytiscidae.fas", format="fasta", type="DNA")
 dm1 <- dist.ml(phyDatDyt)
 tree1 <- fastme.bal(dm1)
