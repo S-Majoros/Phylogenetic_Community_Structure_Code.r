@@ -334,23 +334,10 @@ alignmentNames <- foreach(i=1:length(taxalistcomplete)) %do%
 dnaStringSet3 <- foreach(i=1:length(alignmentSequencesPlusRef)) %do%
   DNAStringSet(alignmentSequencesPlusRef[[i]])
 
-#Then name each one individually for each family
-names(dnaStringSet3[[1]]) <- alignmentNames[[1]]
-names(dnaStringSet3[[2]]) <- alignmentNames[[2]]
-names(dnaStringSet3[[3]]) <- alignmentNames[[3]]
-names(dnaStringSet3[[4]]) <- alignmentNames[[4]]
-names(dnaStringSet3[[5]]) <- alignmentNames[[5]]
-names(dnaStringSet3[[6]]) <- alignmentNames[[6]]
-names(dnaStringSet3[[7]]) <- alignmentNames[[7]]
-names(dnaStringSet3[[8]]) <- alignmentNames[[8]]
-names(dnaStringSet3[[9]]) <- alignmentNames[[9]]
-names(dnaStringSet3[[10]]) <- alignmentNames[[10]]
-names(dnaStringSet3[[11]]) <- alignmentNames[[11]]
-names(dnaStringSet3[[12]]) <- alignmentNames[[12]]
-names(dnaStringSet3[[13]]) <- alignmentNames[[13]]
-names(dnaStringSet3[[14]]) <- alignmentNames[[14]]
-names(dnaStringSet3[[15]]) <- alignmentNames[[15]]
-names(dnaStringSet3[[16]]) <- alignmentNames[[16]]
+  #Name each sequence
+  for(i in 1:16){
+    names(dnaStringSet3[[i]]) = alignmentNames[[i]]
+  }
 
 #Multiple sequence alignment
 alignmentFinal <- foreach(i=1:length(dnaStringSet3)) %do%
