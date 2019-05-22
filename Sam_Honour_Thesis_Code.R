@@ -1,4 +1,4 @@
-##pipeline for my honour's thesis 
+##pipeline for my honour's thesis
 #Centroid and alignment code adapted from Matthew Orton https://github.com/m-orton/Evolutionary-Rates-Analysis-Pipeline/blob/master/EvolutionaryComparisonPipelineSmallTaxa.R
 #Sequence trimming and outlier removal functions adapted from Jacqueline May https://github.com/jmay29/phylo/blob/master/refSeqTrim.R
 
@@ -49,20 +49,20 @@ dfOrder <- read_tsv("Coleoptera_download_Oct26")
 dfOrder <- dfOrder %>%
   #Filter out those without bin_uri
   filter(str_detect(bin_uri, ":")) %>%
-  #Filter out those without a sequence 
+  #Filter out those without a sequence
   filter(str_detect(nucleotides, "[ACTG]")) %>%
   #Filter for COI-5P
   filter(markercode == "COI-5P") %>%
-  #Filter out sequences with fewer than 500 base pairs 
+  #Filter out sequences with fewer than 500 base pairs
   filter(nchar(gsub("-", "", nucleotides)) > 499) %>%
   #Filter out records without a family name
   filter(!is.na(family_name))
 
-#Filter out high gap/N content. A threshold of 1% was chosen because species often differ by more than 2% divergence. By filtering out records with > 1% N and gap content, we are likely to get a high-quality data set, given typical patterns of variability in COI in animals. 
+#Filter out high gap/N content. A threshold of 1% was chosen because species often differ by more than 2% divergence. By filtering out records with > 1% N and gap content, we are likely to get a high-quality data set, given typical patterns of variability in COI in animals.
 startNGap <- sapply(regmatches(dfOrder$nucleotides, gregexpr("^[-N]", dfOrder$nucleotides)), length)
-startNGap <- foreach(i=1:nrow(dfOrder)) %do% 
-  if (startNGap[[i]]>0) { 
-    split <- strsplit(dfOrder$nucleotides[i], "^[-N]+") 
+startNGap <- foreach(i=1:nrow(dfOrder)) %do%
+  if (startNGap[[i]]>0) {
+    split <- strsplit(dfOrder$nucleotides[i], "^[-N]+")
     dfOrder$nucleotides[i] <- split[[1]][2]
   }
 endNGap <- sapply(regmatches(dfOrder$nucleotides, gregexpr("[-N]$", dfOrder$nucleotides)), length)
@@ -77,14 +77,14 @@ internalNGap <- foreach(i=1:nrow(dfOrder)) %do%
 nGapCheck <- sapply(internalNGap, function(x)length(x))
 nGapCheck <- which(nGapCheck>0)
 dfOrder <- dfOrder[-nGapCheck, ]
-#Remove redundant "BOLD" section from BIN column 
+#Remove redundant "BOLD" section from BIN column
 dfOrder$bin_uri <- substr(dfOrder$bin_uri, 6, 13)
-#Filter out sequences without coordinates 
+#Filter out sequences without coordinates
 containLatLon <- grep ("[0-9]", dfOrder$lat)
 dfOrder <- dfOrder[containLatLon, ]
 
-#Create subset filter using coordinates 
-#Filter for Churchill, Manitoba 
+#Create subset filter using coordinates
+#Filter for Churchill, Manitoba
 SubsetFilter_Churchill <- which(dfOrder$lat > 58.6 &
                            dfOrder$lon > -94.2 & dfOrder$lat < 58.7 &
                            dfOrder$lon < -93.8)
@@ -99,12 +99,12 @@ number_of_unique_species <- as.data.frame(number_of_unique_species)
 #Filter down to families with more than 3 or more species
 number_of_unique_species <- filter(number_of_unique_species, number_of_unique_species$number_of_species > 2)
 
-#Create filter to filter down the order to families with three or more species in the subset  
+#Create filter to filter down the order to families with three or more species in the subset
 dfOrder_filter <- which(dfOrder$family_name %in% number_of_unique_species$family_name)
-#Apply filter 
+#Apply filter
 dfOrder <- dfOrder[dfOrder_filter, ]
 
-#Remove uneeded variables 
+#Remove uneeded variables
 rm(number_of_unique_species, total_species_number, SubsetFilter_Churchill, containLatLon, endNGap, internalNGap, nGapCheck, split, startNGap, dfOrder_filter, i)
 
 #Part 2: Choosing a Centroid----
@@ -114,7 +114,7 @@ rm(number_of_unique_species, total_species_number, SubsetFilter_Churchill, conta
 dfBinList <- (dfOrder[, c("processid", "bin_uri", "nucleotides")])
 #Create groupings by BIN, each with different bin_uri
 binList <- lapply(unique(dfOrder$bin_uri), function(x) dfOrder[dfOrder$bin_uri==x, ])
-#Number of processids in each bin 
+#Number of processids in each bin
 binSize <- sapply(binList, function(x)length(x$processid))
 #Create new data frame with bin_uri and bin size
 dfOrder_bins <- data.frame(binSize)
@@ -125,8 +125,8 @@ dfBinList <- merge(dfBinList, dfOrder_bins, by.x="bin_uri", by.y="bin_uri")
 dfOrder_bins <- dfOrder_bins[order(dfOrder_bins$bin_uri), ]
 
 #Find bins with more than one member
-largeBin <- which(dfBinList$binSize > 1)   
-#Create dataframe with only bins with more than one member 
+largeBin <- which(dfBinList$binSize > 1)
+#Create dataframe with only bins with more than one member
 if (length(largeBin) > 0) {
   dfCentroid <- dfBinList[largeBin, ]
 }
@@ -134,30 +134,30 @@ if (length(largeBin) > 0) {
 #Subset dfOrder_bins down to number of bins in dfOrder
 dfOrder_bins <- subset(dfOrder_bins, dfOrder_bins$bin_uri %in% dfCentroid$bin_uri)
 
-#Find number of unique bins in dfCentroid 
-binNumberCentroid <- unique(dfCentroid$bin_uri)   
-binNumberCentroid <- length(binNumberCentroid) 
+#Find number of unique bins in dfCentroid
+binNumberCentroid <- unique(dfCentroid$bin_uri)
+binNumberCentroid <- length(binNumberCentroid)
 
-#Create dataframe with bins with only one sequence 
+#Create dataframe with bins with only one sequence
 dfNonCentroid <- dfBinList[-largeBin, ]
 
-#Create list from dfCentroid 
+#Create list from dfCentroid
 largeBinList <- lapply(unique(dfCentroid$bin_uri), function(x) dfCentroid[dfCentroid$bin_uri == x, ])
 #Extract process Id from each bin
 largeBinProcessid <- sapply(largeBinList, function(x) (x$processid))
 
 #Convert sequences to dnaStringSet
-dnaStringSet1 <- sapply(largeBinList, function(x) DNAStringSet(x$nucleotides))  
-#Name dnaStringSet with processids   
+dnaStringSet1 <- sapply(largeBinList, function(x) DNAStringSet(x$nucleotides))
+#Name dnaStringSet with processids
 for(i in seq(from=1, to=binNumberCentroid, by=1)) {
   names(dnaStringSet1[[i]]) <- largeBinProcessid[[i]]
-}           
+}
 
-#Run multiple sequence alignment for sequences in each BIN in dnaStringSet1   
+#Run multiple sequence alignment for sequences in each BIN in dnaStringSet1
 alignment1 <- foreach(i=1:binNumberCentroid) %do%
   muscle::muscle(dnaStringSet1[[i]], maxiters=3, diags=TRUE, gapopen=-3000)
 
-#Convert to DNAbin format 
+#Convert to DNAbin format
 dnaBINCentroid <- foreach(i=1:binNumberCentroid) %do% as.DNAbin(alignment1[[i]])
 
 #Calculate a pairwise distance matrix for each BIN
@@ -171,31 +171,31 @@ centroidSeq <- centroidSeq %>%
   unlist() %>%
   names()
 
-#Subset dfCentroid by the processid on the list 
+#Subset dfCentroid by the processid on the list
 dfCentroid <- subset(dfCentroid, processid %in% centroidSeq)
 
 #Merge with dfNonCentroid
 dfAllSeq <- rbind(dfCentroid, dfNonCentroid)
-#Merge with the original data set 
+#Merge with the original data set
 dfAllSeq <- merge(dfAllSeq, dfOrder, by.x="processid", by.y="processid")
-#Reorganize and clean up 
+#Reorganize and clean up
 dfAllSeq <- (dfAllSeq[, c("bin_uri.x", "binSize", "processid", "family_taxID", "family_name", "species_taxID", "species_name", "nucleotides.x", "lat", "lon", "subfamily_name", "order_name")])
 colnames(dfAllSeq)[1] <- "bin_uri"
 colnames(dfAllSeq)[8] <- "nucleotides"
-#Delete any possible duplicate entries 
+#Delete any possible duplicate entries
 dfAllSeq <- (by(dfAllSeq, dfAllSeq["bin_uri"], head, n=1))
 dfAllSeq <- Reduce(rbind, dfAllSeq)
 #Add an index column
 dfAllSeq$ind <- row.names(dfAllSeq)
 
-#Remove unneeded dataframes and variables 
+#Remove unneeded dataframes and variables
 rm(alignment1, binList, dfBinList, dfCentroid, dfOrder_bins, dfNonCentroid, dnaBINCentroid, dnaStringSet1, geneticDistanceCentroid, largeBinList, largeBinProcessid, binNumberCentroid, binSize,  centroidSeq, i, largeBin)
 
 #Part 3: Alignment----
 
-#Create a function to trim the sequences 
+#Create a function to trim the sequences
 RefSeqTrim <- function(x) {
-  #Create data frame for reference sequence 
+  #Create data frame for reference sequence
   #This reference sequence was taken from BOLD for Coleoptera. Process id: AEDNA549-12. Species:Colymbetes dolabratus.
   dfRefSeq <- data.frame(taxa=c("Coleoptera"), nucleotides=c("TAACTTTATATTTTATTTTTGGTGCATGGGCTGGAATGGTAGGAACATCTTTAAGTATGTTGATTCGAGCCGAATTAGGAAATCCTGGTTCTCTGATTGGAGATGATCAAATTTATAATGTTATTGTAACAGCACATGCTTTTGTAATAATTTTTTTCATAGTAATACCTATTATAATTGGGGGATTTGGAAATTGATTAGTTCCATTAATATTGGGGGCCCCAGATATAGCTTTTCCCCGAATAAATAATATAAGTTTTTGACTTCTTCCGCCTTCTTTAACTCTTCTATTAATAAGAAGAATAGTTGAAAGTGGGGCCGGGACAGGATGAACAGTTTACCCCCCTCTATCTTCAGGAATTGCACACGGAGGAGCTTCAGTTGATCTAGCAATTTTTAGTCTTCATTTAGCTGGAATTTCATCTATTTTAGGGGCTGTAAATTTCATTACAACTATTATTAATATACGATCAGTGGGAATAACATTCGACCGAATGCCTCTATTTGTATGATCCGTAGGAATTACAGCTTTATTACTATTATTATCTTTACCTGTATTAGCGGGAGCTATTACTATATTATTAACTGATCGTAATCTAAACACCTCATTCTTCGACCCGGCAGGAGGGGGAGATCCAATTTTATATCAACATTTATT"))
   colnames(dfRefSeq)[2] <- "nucleotides"
@@ -211,21 +211,21 @@ RefSeqTrim <- function(x) {
   #Name according to bin_uri
   names(alignmentSeqs) <- x$bin_uri
   alignmentref <- as.character(dfRefSeq$nucleotides[1])
-  #Name reference sequence 
+  #Name reference sequence
   names(alignmentref) <- "Reference"
   #Put sequences together
   alignmentSeqsPlusRef <- append(alignmentref, alignmentSeqs)
-  #Convert to DNAStringSet 
+  #Convert to DNAStringSet
   DNAStringSet2 <- DNAStringSet(alignmentSeqsPlusRef)
-  #Run alignment 
+  #Run alignment
   alignment2 <- muscle::muscle(DNAStringSet2, diags=TRUE, gapopen=-3000)
-  #Check alignment 
-  classFileNames <- foreach(i=1:nrow(dfRefSeq)) %do% 
+  #Check alignment
+  classFileNames <- foreach(i=1:nrow(dfRefSeq)) %do%
     paste("alignmentUntrimmed", dfRefSeq$taxa[i], ".fas", sep="")
   alignmentUntrimmed <- DNAStringSet(alignment2)
   writeXStringSet(alignmentUntrimmed, file=classFileNames[[1]],
                   format = "fasta", width=1500)
-  #Find stop and start postions in reference 
+  #Find stop and start postions in reference
   refSeqPos <- which(alignment2@unmasked@ranges@NAMES=="Reference")
   refSeqPos <- alignment2@unmasked[refSeqPos]
   refSeqPosStart <- regexpr("[ACTG]", refSeqPos)
@@ -236,49 +236,49 @@ RefSeqTrim <- function(x) {
   alignment2Trimmed <- substr(alignment2, refSeqPosStart, refSeqPosEnd)
   #Convert to DNAStringSet
   DNAStringSet3 <- DNAStringSet(alignment2Trimmed)
-  #Check alignment 
-  classFileNames <- foreach(i=1:nrow(dfRefSeq)) %do% 
+  #Check alignment
+  classFileNames <- foreach(i=1:nrow(dfRefSeq)) %do%
     paste("alignmentTrimmed", dfRefSeq$taxa[i], ".fas", sep="")
   writeXStringSet(DNAStringSet3, file=classFileNames[[1]],
                   format = "fasta", width=1500)
-  #Remove reference sequence 
+  #Remove reference sequence
   refSeqRm <- which(DNAStringSet3@ranges@NAMES=="Reference")
   dnaStringSet3 <- subset(DNAStringSet3[-refSeqRm])
   alignmentOrder <- DNAStringSet3@ranges@NAMES
   #Reorder based on alignment
   x <- x[match(alignmentOrder, x$bin_uri), ]
-  #Replace old sequences with new ones 
+  #Replace old sequences with new ones
   trimmedSeqs <- as.character(DNAStringSet3)
   x$nucleotides <- trimmedSeqs
-  #Return datafrmae with new sequences 
+  #Return datafrmae with new sequences
   return(x)
 }
 
-#Trim centroid sequences to reference sequence 
+#Trim centroid sequences to reference sequence
 dfAllSeq2 <- RefSeqTrim(dfAllSeq)
 
-#Convert sequences to DNAbin format 
+#Convert sequences to DNAbin format
 DNABin <- DNAStringSet(dfAllSeq2$nucleotides)
 names(DNABin) <- dfAllSeq2$bin_uri
 DNABin <- as.DNAbin(DNABin)
-#Construct a distance matrix 
+#Construct a distance matrix
 distanceMatrix <- dist.dna(DNABin, model="TN93", as.matrix = TRUE, pairwise.deletion = TRUE)
 #Visualizing the values in the distance matrix using a histogram
 hist(distanceMatrix)
 
-#Using upper threshold of IQR to detect outliers 
+#Using upper threshold of IQR to detect outliers
 lowerQuantile <- quantile(distanceMatrix)[2]
 upperQuantile <- quantile(distanceMatrix)[4]
 iqr <-upperQuantile - lowerQuantile
-#For now leaving as 1.5, could change to 3 for extreme outliers only 
+#For now leaving as 1.5, could change to 3 for extreme outliers only
 upperThreshold <- (iqr*1.5) + upperQuantile
-#Remove 0 values 
+#Remove 0 values
 distanceMatrix[distanceMatrix==0] <- NA
-#Convert to data table 
+#Convert to data table
 dfOutliers <- as.data.table(distanceMatrix, keep.rownames = T)
 #Change the "rn" column to bin_uri
 setnames(dfOutliers, "rn", "bin_uri")
-#Identify divergent bins 
+#Identify divergent bins
 dfOutliers <- dfOutliers[, outlier := apply(.SD, 1, function(x)all(x>upperThreshold, na.rm=T))][outlier==TRUE]
 
 #Create remove sequences function
@@ -292,23 +292,23 @@ RemoveSequences<-function(x, y){
   return(x)
 }
 
-#Remove outliers 
-#Outliers should be blasted prior to removal 
+#Remove outliers
+#Outliers should be blasted prior to removal
 dfAllSeq <- RemoveSequences(dfAllSeq, dfOutliers$bin_uri)
 
-#Create final alignment of sequences 
+#Create final alignment of sequences
 #Create RefSeq data frame
 #Sequence was taken from BOLD and manually put in
 dfRefSeq <- data.frame(taxa=c("Coleoptera"), nucleotides=c("TAACTTTATATTTTATTTTTGGTGCATGGGCTGGAATGGTAGGAACATCTTTAAGTATGTTGATTCGAGCCGAATTAGGAAATCCTGGTTCTCTGATTGGAGATGATCAAATTTATAATGTTATTGTAACAGCACATGCTTTTGTAATAATTTTTTTCATAGTAATACCTATTATAATTGGGGGATTTGGAAATTGATTAGTTCCATTAATATTGGGGGCCCCAGATATAGCTTTTCCCCGAATAAATAATATAAGTTTTTGACTTCTTCCGCCTTCTTTAACTCTTCTATTAATAAGAAGAATAGTTGAAAGTGGGGCCGGGACAGGATGAACAGTTTACCCCCCTCTATCTTCAGGAATTGCACACGGAGGAGCTTCAGTTGATCTAGCAATTTTTAGTCTTCATTTAGCTGGAATTTCATCTATTTTAGGGGCTGTAAATTTCATTACAACTATTATTAATATACGATCAGTGGGAATAACATTCGACCGAATGCCTCTATTTGTATGATCCGTAGGAATTACAGCTTTATTACTATTATTATCTTTACCTGTATTAGCGGGAGCTATTACTATATTATTAACTGATCGTAATCTAAACACCTCATTCTTCGACCCGGCAGGAGGGGGAGATCCAATTTTATATCAACATTTATT"))
 
 colnames(dfRefSeq)[2] <- "nucleotides"
-dfRefSeq$nucleotides <- as.character(dfRefSeq$nucleotides) 
+dfRefSeq$nucleotides <- as.character(dfRefSeq$nucleotides)
 #Trim references to standard 620
-dfRefSeq$nucleotides <- substr(dfRefSeq$nucleotides, 20, nchar(dfRefSeq$nucleotides)-19) 
+dfRefSeq$nucleotides <- substr(dfRefSeq$nucleotides, 20, nchar(dfRefSeq$nucleotides)-19)
 #Check sequence length
 dfRefSeq$seqLength <- nchar(dfRefSeq$nucleotides)
 #Subset centroid sequences by those found in reference sequence dataframe
-dfAllSeq <- subset(dfAllSeq, dfAllSeq$order_name %in% dfRefSeq$taxa) 
+dfAllSeq <- subset(dfAllSeq, dfAllSeq$order_name %in% dfRefSeq$taxa)
 #Break down dataframe into families
 taxalistcomplete <- lapply(unique(dfAllSeq$family_taxID), function(x) dfAllSeq[dfAllSeq$family_taxID==x, ])
 
@@ -330,7 +330,7 @@ alignmentSequencesPlusRef <- foreach(i=1:length(taxalistcomplete)) %do%
 alignmentNames <- foreach(i=1:length(taxalistcomplete)) %do%
   append(familySequenceNames[[i]], alignmentRefNames[[1]])
 
-#Convert sequences to DNAStringSet format 
+#Convert sequences to DNAStringSet format
 dnaStringSet3 <- foreach(i=1:length(alignmentSequencesPlusRef)) %do%
   DNAStringSet(alignmentSequencesPlusRef[[i]])
 
@@ -352,7 +352,7 @@ names(dnaStringSet3[[14]]) <- alignmentNames[[14]]
 names(dnaStringSet3[[15]]) <- alignmentNames[[15]]
 names(dnaStringSet3[[16]]) <- alignmentNames[[16]]
 
-#Multiple sequence alignment 
+#Multiple sequence alignment
 alignmentFinal <- foreach(i=1:length(dnaStringSet3)) %do%
   muscle(dnaStringSet3[[i]], diags=TRUE, gapopen=-3000)
 #Check Alignment
@@ -432,7 +432,7 @@ referencefind16 <- which(dfFamilyDNA$bin_uri == "reference15")
 dfFamilyDNA <- dfFamilyDNA[-referencefind16, ]
 
 #Pull names from dataframe
-familyList <- lapply(unique(dfFamilyDNA$family_name), 
+familyList <- lapply(unique(dfFamilyDNA$family_name),
                      function(x) dfFamilyDNA[dfFamilyDNA$family_name == x, ])
 #Create new dnaStringSet
 dnaStringSet5 <- sapply(familyList, function(x) DNAStringSet(x$FinalSequences))
@@ -446,13 +446,13 @@ for(i in seq(from = 1, to = length(dnaStringSet5), by = 1)) {
 #Save family as a fasta file
 #For file names make sure to list each family name
 familyFileNames <- list("Carabidae", "Curculionidae", "Dytiscidae", "Coccinellidae", "Leiodidae", "Chrysomelidae", "Staphylinidae", "Buprestidae", "Hydrophilidae", "Haliplidae", "Cantharidae", "Gyrinidae", "Elateridae", "Cryptophagidae", "Scirtidae", "Latridiidae")
-familyFileNames <- foreach(i=1:length(familyFileNames)) %do% 
+familyFileNames <- foreach(i=1:length(familyFileNames)) %do%
   paste("Alignment", familyFileNames[[i]], ".fas", sep="")
 #Send to your desired working directory
 foreach(i=1:length(dnaStringSet5)) %do% writeXStringSet(dnaStringSet5[[i]], file=familyFileNames[[i]], format="fasta")
 
 #Create a separate function for each family to generate files, must be in same working directory you wrote to
-#Double check that these are named with the proper family 
+#Double check that these are named with the proper family
 phyDatDyt <- read.phyDat("AlignmentDytiscidae.fas", format="fasta", type="DNA")
 phyDatCara <- read.phyDat("AlignmentCarabidae.fas", format="fasta", type="DNA")
 phyDatCur <- read.phyDat("AlignmentCurculionidae.fas", format="fasta", type="DNA")
@@ -461,7 +461,7 @@ phyDatLei <- read.phyDat("AlignmentLeiodidae.fas", format="fasta", type="DNA")
 phyDatChry <- read.phyDat("AlignmentChrysomelidae.fas", format="fasta", type="DNA")
 phyDatBup <- read.phyDat("AlignmentBuprestidae.fas", format="fasta", type="DNA")
 phyDatHyd <- read.phyDat("AlignmentHydrophilidae.fas", format="fasta", type="DNA")
-phyDatHal <- read.phyDat("AlignmentHaliplidae.fas", format="fasta", type="DNA") 
+phyDatHal <- read.phyDat("AlignmentHaliplidae.fas", format="fasta", type="DNA")
 phyDatCan <- read.phyDat("AlignmentCantharidae.fas", format="fasta", type="DNA")
 phyDatGyr <- read.phyDat("AlignmentGyrinidae.fas", format="fasta", type="DNA")
 phyDatEla <- read.phyDat("AlignmentElateridae.fas", format="fasta", type="DNA")
@@ -537,7 +537,7 @@ env12 <- attr(mt12, "env")
 env13 <- attr(mt13, "env")
 env14 <- attr(mt14, "env")
 env15 <- attr(mt15, "env")
-#Find parameters 
+#Find parameters
 fit1 <- eval(get("HKY+G+I", env1), env1)
 fit2 <- eval(get("HKY+G+I", env2), env2)
 fit3 <- eval(get("HKY+G+I", env3), env3)
@@ -553,7 +553,7 @@ fit12 <- eval(get("HKY+G+I", env12), env12)
 fit13 <- eval(get("HKY+G+I", env13), env13)
 fit14 <- eval(get("HKY+G+I", env14), env14)
 fit15 <- eval(get("GTR+G+I", env15), env15)
-#Compute likelihood 
+#Compute likelihood
 ML_Dyt <- pml(tree1, phyDatDyt, k=4, inv= 0.4681883)
 ML_Car <- pml(tree2, phyDatCara, k=4, inv= 0.5308776)
 ML_Cur <- pml(tree3, phyDatCur, k=4, inv= 0.5482425)
@@ -569,8 +569,8 @@ ML_Ela <- pml(tree12, phyDatEla, k=4, inv= 0.5619085)
 ML_Cryp <- pml(tree13, phyDatCryp, k=4, inv= 0.4869501)
 ML_Sci <- pml(tree14, phyDatSci, k=4, inv= 0.5677839)
 ML_Lat <- pml(tree15, phyDatLat, k=4, inv= 0.5619141)
-#Compute likelihood and optimize parameters 
-#Change model based on results of model test 
+#Compute likelihood and optimize parameters
+#Change model based on results of model test
 ML_Dyt <- optim.pml(ML_Dyt, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "HKY")
 ML_Car <- optim.pml(ML_Car, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "HKY")
 ML_Cur <- optim.pml(ML_Cur, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "HKY")
@@ -587,7 +587,7 @@ ML_Cryp <- optim.pml(ML_Cryp, optNni = TRUE, optGamma = TRUE, optInv = TRUE, mod
 ML_Sci <- optim.pml(ML_Sci, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "HKY")
 ML_Lat <- optim.pml(ML_Lat, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "GTR")
 
-#Create seperate variable for tree 
+#Create seperate variable for tree
 ML_Tree_Dyt <- ML_Dyt$tree
 ML_Tree_Car <- ML_Car$tree
 ML_Tree_Cur <- ML_Cur$tree
@@ -620,16 +620,16 @@ plot(ML_Tree_Cryp)
 plot(ML_Tree_Sci)
 plot(ML_Tree_Lat)
 
-#Remove unneeded variables 
+#Remove unneeded variables
 rm(env1, env2, env3, env4, env5, env6, env7, env8, env9, env10, env11, env12, env13, env14, env15, fit1, fit2, fit3, fit4, fit5, fit6, fit7, fit8, fit9, fit10, fit11, fit12, fit13, fit14, fit15, mt1, mt2, mt3, mt4, mt5, mt6, mt7, mt8, mt9, mt10, mt11, mt12, mt13, mt14, mt15, dm1, dm2, dm3, dm4, dm5, dm6, dm7, dm8, dm9, dm10, dm11, dm12, dm13, dm14, dm15, dm16, tree1, tree2, tree3, tree4, tree5, tree6, tree7, tree8, tree9, tree10, tree11, tree12, tree13, tree14, tree15, binNames, familyFileNames, familyList, familySequenceNames, referencefind1, referencefind2, referencefind3, referencefind4, referencefind5, referencefind6, referencefind7, referencefind8, referencefind9, referencefind10, referencefind11, referencefind12, referencefind13, referencefind14, referencefind15, referencefind16)
 
 #Part 5: NTI and NRI----
 
 #Create a filter for BINs found in Churchill
 ChurchillFilter <- which(dfAllSeq$bin_uri %in% dfOrder_Churchill$bin_uri)
-#Create a filter for the BINs not found in Churchill 
+#Create a filter for the BINs not found in Churchill
 NotChurchillFilter <- which(!(dfAllSeq$bin_uri %in% dfOrder_Churchill$bin_uri))
-#Apply the filters 
+#Apply the filters
 dfFilter_Churchill <- dfAllSeq[ChurchillFilter, ]
 dfFilter_NotChurchill <- dfAllSeq[NotChurchillFilter, ]
 #Change to data table and set to 1 if present in Churchill and 0 if not in Churchill
@@ -637,13 +637,13 @@ dfFilter_Churchill <- as.data.table(dfFilter_Churchill)
 dfFilter_Churchill <- dfFilter_Churchill[, churchill := 1]
 dfFilter_NotChurchill <- as.data.table(dfFilter_NotChurchill)
 dfFilter_NotChurchill <- dfFilter_NotChurchill[, churchill := 0]
-#Bind the new data frames to taxalistcomplete 
+#Bind the new data frames to taxalistcomplete
 dfAllSeq <- rbind(dfFilter_Churchill, dfFilter_NotChurchill)
 
 #Create a presence absence matrix for bin_uri in Churchill
-#Create new data frame  
+#Create new data frame
 dfAllSeq2 <- dfAllSeq [, c("bin_uri", "churchill", "family_name")]
-#Split into family dataframes and remove the family column 
+#Split into family dataframes and remove the family column
 dfAllSeq2 <- split(dfAllSeq2, list(dfAllSeq$family_name))
 dfBuprestidae <- as.data.frame(dfAllSeq2[1])
 dfBuprestidae <- dfBuprestidae[, c("Buprestidae.bin_uri", "Buprestidae.churchill")]
@@ -742,7 +742,7 @@ Family_matrix14 <- unclass(Family_matrix14)
 Family_matrix15 <- unclass(Family_matrix15)
 
 #Calculate net relatedness index (NRI) and nearest taxon index (NTI) using ML Tree
-#Ensure ML tree is in correct format 
+#Ensure ML tree is in correct format
 phy.dist1 <- cophenetic(ML_Tree_Bup)
 phy.dist2 <- cophenetic(ML_Tree_Can)
 phy.dist3 <- cophenetic(ML_Tree_Car)
@@ -793,27 +793,27 @@ ses.mntd.result_ML_Lat <- ses.mntd(Family_matrix13, phy.dist13, null.model = "ta
 ses.mntd.result_ML_Lei <- ses.mntd(Family_matrix14, phy.dist14, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
 ses.mntd.result_ML_Sci <- ses.mntd(Family_matrix15, phy.dist15, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
 
-#Remove unneeded variables 
+#Remove unneeded variables
 rm(env, Family_phyDat, fit, mt, phy.dist, dm, dfFilter_Churchill, dfFilter_NotChurchill, ChurchillFilter, NotChurchillFilter, dfAllseq2)
 
 #Part 6: Trait Analysis: ANOVA----
 
 #Read in character matrix
 Coleoptera_Matrix_NRI <- read_csv(file="C:/Users/sammi/Dropbox/Sam Majoros/R Code/Coleoptera_Matrix_NRI.csv")
-#Run ANOVAs for both traits 
+#Run ANOVAs for both traits
 Coleoptera_ANOVA_NRI_Feeding <- aov(structure ~ adult_diet, data = Coleoptera_Matrix_NRI)
 Coleoptera_ANOVA_NRI_Habitat <- aov(structure ~ habitat, data = Coleoptera_Matrix_NRI)
-#Get ANOVA summary 
+#Get ANOVA summary
 summary(Coleoptera_ANOVA_NRI_Habitat)
 summary(Coleoptera_ANOVA_NRI_Feeding)
 
 #Repeat for NTI values
 #Read in matrix
 Coleoptera_Matrix_NTI <- read.csv(file="C:/Users/sammi/Dropbox/Sam Majoros/R Code/Coleoptera_Matrix_NTI.csv")
-#Run ANOVAs for both traits 
+#Run ANOVAs for both traits
 Coleoptera_ANOVA_NTI_Habitat <- aov(structure ~ habitat, data = Coleoptera_Matrix_NTI)
 Coleoptera_ANOVA_NTI_Feeding <- aov(structure ~ adult_diet, data = Coleoptera_Matrix_NTI)
-#Get ANOVA summary 
+#Get ANOVA summary
 summary(Coleoptera_ANOVA_NTI_Habitat)
 summary(Coleoptera_ANOVA_NTI_Feeding)
 
@@ -826,15 +826,15 @@ PGLStree <- read.nexus("PGLS_tree_Coleoptera")
 #Set branch lengths to one
 PGLStree$edge.length <- replicate((length(PGLStree$edge[, 1])), 1)
 PGGLStree <- force.ultrametric(PGLStree, method="extend")
-#Set the row names to family names 
+#Set the row names to family names
 PGLSdata_NRI <- PGLSdata_NRI %>%
   column_to_rownames(var = 'family_name')
 #Make sure tree and dataframe are in the same order
 PGLSdata_NRI <- PGLSdata_NRI[match(PGLStree$tip.label, rownames(PGLSdata_NRI)), ]
-#Run PGLS analysis 
+#Run PGLS analysis
 pglsModel_NRI1 <- gls(structure ~ habitat, correlation = corBrownian(phy = PGLStree), data = PGLSdata_NRI, method = "ML")
 pglsModel_NRI2 <- gls(structure ~ adult_diet, correlation = corBrownian(phy = PGLStree), data = PGLSdata_NRI, method = "ML")
-#Get PGLS summary 
+#Get PGLS summary
 summary(pglsModel_NRI1)
 summary(pglsModel_NRI2)
 
@@ -844,18 +844,14 @@ plot2 <- boxplot(PGLSdata_NRI$structure ~ PGLSdata_NRI$adult_diet )
 
 #Repeat for NTI
 PGLSdata_NTI <- read.csv("Coleoptera_Matrix_NTI.csv")
-#Set row names to family names 
+#Set row names to family names
 PGLSdata_NTI <- PGLSdata_NTI %>%
   column_to_rownames(var = 'family_name')
 #Make sure tree and dataframe are in the same order
 PGLSdata_NTI <- PGLSdata_NTI[match(PGLStree$tip.label, rownames(PGLSdata_NTI)), ]
-#Run PGLS analysis 
+#Run PGLS analysis
 pglsModel_NTI1 <- gls(structure ~ habitat, correlation = corBrownian(phy = PGLStree), data = PGLSdata_NTI, method = "ML")
 pglsModel_NTI2 <- gls(structure ~ adult_diet, correlation = corBrownian(phy = PGLStree), data = PGLSdata_NTI, method = "ML")
-#Get PGLS summary 
+#Get PGLS summary
 summary(pglsModel_NTI1)
 summary(pglsModel_NTI2)
-
-
-
-
