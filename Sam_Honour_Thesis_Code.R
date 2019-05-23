@@ -378,6 +378,10 @@ FamilyDNA15 <- as.data.frame(dnaStringSet4[[15]])
 FamilyDNA16 <- as.data.frame(dnaStringSet4[[16]])
 FamilyDNA <- rbind(FamilyDNA1, FamilyDNA2, FamilyDNA3, FamilyDNA4, FamilyDNA5, FamilyDNA6, FamilyDNA7, FamilyDNA8, FamilyDNA9, FamilyDNA10, FamilyDNA11, FamilyDNA12, FamilyDNA13, FamilyDNA14, FamilyDNA15, FamilyDNA16)
 
+#Convert each dnaStringSet into a data frame
+#currently causes issues later
+#FamilyDNA <- lapply(dnaStringSet4, as.data.frame)
+
 #Add the bin_uri
 FamilyDNA$bin_uri <- row.names(FamilyDNA)
 #Merge with the information for dfAllSeq
@@ -419,6 +423,22 @@ referencefind15 <- which(dfFamilyDNA$bin_uri == "reference14")
 dfFamilyDNA <- dfFamilyDNA[-referencefind15, ]
 referencefind16 <- which(dfFamilyDNA$bin_uri == "reference15")
 dfFamilyDNA <- dfFamilyDNA[-referencefind16, ]
+
+#create function to get reference names
+#removes all references but one. One reference is only "reference" without a number. This one is left.
+#get_reference_names <- function(top_ref_num = 15){
+  #the highest number used in the references is passed in, default is 15
+#  ref_names <- c()
+#  prefix <- "reference"
+#  for(i in 1:top_ref_num){
+#    new_str <- paste(prefix, as.character(i), sep='')
+#    ref_names <- c(ref_names, new_str)
+#  }
+#  return(ref_names)
+#}
+#reference_names = get_reference_names()
+#remove reference from dataframe
+#dfFamilyDNA <- dfFamilyDNA[!dfFamilyDNA$bin_uri %in% reference_names , ]
 
 #Pull names from dataframe
 familyList <- lapply(unique(dfFamilyDNA$family_name),
@@ -499,6 +519,15 @@ ML_Cryp <- pml(tree13, phyDatCryp, k=4, inv= 0.4869501)
 ML_Sci <- pml(tree14, phyDatSci, k=4, inv= 0.5677839)
 ML_Lat <- pml(tree15, phyDatLat, k=4, inv= 0.5619141)
 
+#Compute likelihood
+#could not get this section to work. Pretty sure it's something with the inv
+#inv_values <- c(0.4681883, 0.5308776, 0.5482425, 0.5581981, 0.5581981, 0.528835, 0.5104581, 0.5886127,
+                0.6695774, 0.5145766, 0.6361499, 0.5619085, 0.4869501, 0.5677839, 0.5619141)
+#pml_wrapper <- function(tree, phylo, inv){
+#  return(pml(tree, phylo, k=4, inv))
+#}
+#ml_out <- mapply(pml_wrapper, tree, phylo_dat, inv_values)
+
 #Compute likelihood and optimize parameters
 #Change model based on results of model test
 ML_Dyt <- optim.pml(ML_Dyt, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "HKY")
@@ -517,6 +546,12 @@ ML_Cryp <- optim.pml(ML_Cryp, optNni = TRUE, optGamma = TRUE, optInv = TRUE, mod
 ML_Sci <- optim.pml(ML_Sci, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "HKY")
 ML_Lat <- optim.pml(ML_Lat, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "GTR")
 
+#Compute Liklihood and optimize parameters
+#Untested
+#ml_out <- lapply(ml_out, function(x){
+#  optim.pml(x, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "HKY")
+#})
+
 #Create seperate variable for tree
 ML_Tree_Dyt <- ML_Dyt$tree
 ML_Tree_Car <- ML_Car$tree
@@ -534,8 +569,14 @@ ML_Tree_Cryp <- ML_Cryp$tree
 ML_Tree_Sci <- ML_Sci$tree
 ML_Tree_Lat <- ML_Lat$tree
 
+#pull out the trees
+#untested
+#ml_trees <- lapply(ml_out, function(x){
+#  x['tree',]
+#})
+
 #Remove unneeded variables
-rm(env1, env2, env3, env4, env5, env6, env7, env8, env9, env10, env11, env12, env13, env14, env15, fit1, fit2, fit3, fit4, fit5, fit6, fit7, fit8, fit9, fit10, fit11, fit12, fit13, fit14, fit15, mt1, mt2, mt3, mt4, mt5, mt6, mt7, mt8, mt9, mt10, mt11, mt12, mt13, mt14, mt15, dm1, dm2, dm3, dm4, dm5, dm6, dm7, dm8, dm9, dm10, dm11, dm12, dm13, dm14, dm15, dm16, tree1, tree2, tree3, tree4, tree5, tree6, tree7, tree8, tree9, tree10, tree11, tree12, tree13, tree14, tree15, binNames, familyFileNames, familyList, familySequenceNames, referencefind1, referencefind2, referencefind3, referencefind4, referencefind5, referencefind6, referencefind7, referencefind8, referencefind9, referencefind10, referencefind11, referencefind12, referencefind13, referencefind14, referencefind15, referencefind16)
+rm(env, tree, model_tests, model_fit, dm, binNames, familyFileNames, familyList, familySequenceNames, referencefind1, referencefind2, referencefind3, referencefind4, referencefind5, referencefind6, referencefind7, referencefind8, referencefind9, referencefind10, referencefind11, referencefind12, referencefind13, referencefind14, referencefind15, referencefind16)
 
 #Part 5: NTI and NRI----
 
