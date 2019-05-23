@@ -359,7 +359,7 @@ rm(alignmentFinal, alignmentNames, alignmentSequencesPlusRef, dnaStringSet3, fam
 
 #Part 4: Create Maximum Liklihood tree----
 
-#Would first need to make a separate dataframe for each family and then rbind into one dataframe
+#create dataframes for each family
 FamilyDNA1 <- as.data.frame(dnaStringSet4[[1]])
 FamilyDNA2 <- as.data.frame(dnaStringSet4[[2]])
 FamilyDNA3 <- as.data.frame(dnaStringSet4[[3]])
@@ -377,14 +377,16 @@ FamilyDNA14 <- as.data.frame(dnaStringSet4[[14]])
 FamilyDNA15 <- as.data.frame(dnaStringSet4[[15]])
 FamilyDNA16 <- as.data.frame(dnaStringSet4[[16]])
 FamilyDNA <- rbind(FamilyDNA1, FamilyDNA2, FamilyDNA3, FamilyDNA4, FamilyDNA5, FamilyDNA6, FamilyDNA7, FamilyDNA8, FamilyDNA9, FamilyDNA10, FamilyDNA11, FamilyDNA12, FamilyDNA13, FamilyDNA14, FamilyDNA15, FamilyDNA16)
+
 #Add the bin_uri
 FamilyDNA$bin_uri <- row.names(FamilyDNA)
 #Merge with the information for dfAllSeq
+#This step does not work with the new code. Issue with differing number of rows.
 dfFamilyDNA <- merge(FamilyDNA, dfAllSeq, by.x = "bin_uri", by.y = "bin_uri", all.x = TRUE)
 #Rename the coloumn with your aligned sequences
 colnames(dfFamilyDNA)[2] <- "FinalSequences"
 
-#Remove the reference sequences
+#remove reference sequences
 referencefind1 <- which(dfFamilyDNA$bin_uri == "reference")
 dfFamilyDNA <- dfFamilyDNA[-referencefind1, ]
 referencefind2 <- which(dfFamilyDNA$bin_uri == "reference1")
@@ -438,108 +440,48 @@ familyFileNames <- foreach(i=1:length(familyFileNames)) %do%
 #Send to your desired working directory
 foreach(i=1:length(dnaStringSet5)) %do% writeXStringSet(dnaStringSet5[[i]], file=familyFileNames[[i]], format="fasta")
 
-#Create a separate function for each family to generate files, must be in same working directory you wrote to
-#Double check that these are named with the proper family
-phyDatDyt <- read.phyDat("AlignmentDytiscidae.fas", format="fasta", type="DNA")
-phyDatCara <- read.phyDat("AlignmentCarabidae.fas", format="fasta", type="DNA")
-phyDatCur <- read.phyDat("AlignmentCurculionidae.fas", format="fasta", type="DNA")
-phyDatCocc <- read.phyDat("AlignmentCoccinellidae.fas", format="fasta", type="DNA")
-phyDatLei <- read.phyDat("AlignmentLeiodidae.fas", format="fasta", type="DNA")
-phyDatChry <- read.phyDat("AlignmentChrysomelidae.fas", format="fasta", type="DNA")
-phyDatBup <- read.phyDat("AlignmentBuprestidae.fas", format="fasta", type="DNA")
-phyDatHyd <- read.phyDat("AlignmentHydrophilidae.fas", format="fasta", type="DNA")
-phyDatHal <- read.phyDat("AlignmentHaliplidae.fas", format="fasta", type="DNA")
-phyDatCan <- read.phyDat("AlignmentCantharidae.fas", format="fasta", type="DNA")
-phyDatGyr <- read.phyDat("AlignmentGyrinidae.fas", format="fasta", type="DNA")
-phyDatEla <- read.phyDat("AlignmentElateridae.fas", format="fasta", type="DNA")
-phyDatCryp <- read.phyDat("AlignmentCryptophagidae.fas", format="fasta", type="DNA")
-phyDatSci <- read.phyDat("AlignmentScirtidae.fas", format="fasta", type="DNA")
-phyDatLat <- read.phyDat("AlignmentLatridiidae.fas", format="fasta", type="DNA")
-#phyDatStap <- read.phyDat("AlignmentStaphylinidae.fas", format="fasta", type="DNA")
-#Had an error with this family, so it was excluded from the rest of the analysis. Plan to revisit at a later date.
+#create a list of alignment files
+list_of_files <- c("AlignmentDytiscidae.fas", "AlignmentCarabidae.fas",
+                  "AlignmentCurculionidae.fas","AlignmentCoccinellidae.fas","AlignmentLeiodidae.fas",
+                  "AlignmentChrysomelidae.fas","AlignmentBuprestidae.fas","AlignmentHydrophilidae.fas",
+                  "AlignmentHaliplidae.fas", "AlignmentCantharidae.fas", "AlignmentGyrinidae.fas",
+                  "AlignmentElateridae.fas","AlignmentCryptophagidae.fas", "AlignmentScirtidae.fas",
+                  "AlignmentLatridiidae.fas")
 
-#Create distance matrix
-dm1 <- dist.ml(phyDatDyt)
-dm2 <- dist.ml(phyDatCara)
-dm3 <- dist.ml(phyDatCur)
-dm4 <- dist.ml(phyDatCocc)
-dm5 <- dist.ml(phyDatLei)
-dm6 <- dist.ml(phyDatChry)
-dm7 <- dist.ml(phyDatBup)
-dm8 <- dist.ml(phyDatHyd)
-dm9 <- dist.ml(phyDatHal)
-dm10 <- dist.ml(phyDatCan)
-dm11 <- dist.ml(phyDatGyr)
-dm12 <- dist.ml(phyDatEla)
-dm13 <- dist.ml(phyDatCryp)
-dm14 <- dist.ml(phyDatSci)
-dm15 <- dist.ml(phyDatLat)
+#read the alignments into phyDat format
+phylo_dat <- lapply(list_of_files, function(x){
+  read.phyDat(x, format="fasta", type="DNA")
+})
 
-#Create tree
-tree1 <- fastme.bal(dm1)
-tree2 <- fastme.bal(dm2)
-tree3 <- fastme.bal(dm3)
-tree4 <- fastme.bal(dm4)
-tree5 <- fastme.bal(dm5)
-tree6 <- fastme.bal(dm6)
-tree7 <- fastme.bal(dm7)
-tree8 <- fastme.bal(dm8)
-tree9 <- fastme.bal(dm9)
-tree10 <- fastme.bal(dm10)
-tree11 <- fastme.bal(dm11)
-tree12 <- fastme.bal(dm12)
-tree13 <- fastme.bal(dm13)
-tree14 <- fastme.bal(dm14)
-tree15 <- fastme.bal(dm15)
+#create distance matrices
+dm <- lapply(phylo_dat, function(x){
+  dist.ml(x)
+})
 
-#Run model test
-mt1 <- modelTest(phyDatDyt)
-mt2 <- modelTest(phyDatCara)
-mt3 <- modelTest(phyDatCur)
-mt4 <- modelTest(phyDatCocc)
-mt5 <- modelTest(phyDatLei)
-mt6 <- modelTest(phyDatChry)
-mt7 <- modelTest(phyDatBup)
-mt8 <- modelTest(phyDatHyd)
-mt9 <- modelTest(phyDatHal)
-mt10 <- modelTest(phyDatCan)
-mt11 <- modelTest(phyDatGyr)
-mt12 <- modelTest(phyDatEla)
-mt13 <- modelTest(phyDatCryp)
-mt14 <- modelTest(phyDatSci)
-mt15 <- modelTest(phyDatLat)
-#Create environemnt
-env1 <-attr(mt1, "env")
-env2 <- attr(mt2, "env")
-env3 <- attr(mt3, "env")
-env4 <- attr(mt4, "env")
-env5 <- attr(mt5, "env")
-env6 <- attr(mt6, "env")
-env7 <- attr(mt7, "env")
-env8 <- attr(mt8, "env")
-env9 <- attr(mt9, "env")
-env10 <- attr(mt10, "env")
-env11 <- attr(mt11, "env")
-env12 <- attr(mt12, "env")
-env13 <- attr(mt13, "env")
-env14 <- attr(mt14, "env")
-env15 <- attr(mt15, "env")
-#Find parameters
-fit1 <- eval(get("HKY+G+I", env1), env1)
-fit2 <- eval(get("HKY+G+I", env2), env2)
-fit3 <- eval(get("HKY+G+I", env3), env3)
-fit4 <- eval(get("HKY+G+I", env4), env4)
-fit5 <- eval(get("HKY+G+I", env5), env5)
-fit6 <- eval(get("HKY+G+I", env6), env6)
-fit7 <- eval(get("HKY+G+I", env7), env7)
-fit8 <- eval(get("HKY+G+I", env8), env8)
-fit9 <- eval(get("GTR+G+I", env9), env9)
-fit10 <- eval(get("HKY+G+I", env10), env10)
-fit11 <- eval(get("GTR+G+I", env11), env11)
-fit12 <- eval(get("HKY+G+I", env12), env12)
-fit13 <- eval(get("HKY+G+I", env13), env13)
-fit14 <- eval(get("HKY+G+I", env14), env14)
-fit15 <- eval(get("GTR+G+I", env15), env15)
+#Create a tree for each family
+tree <- lapply(dm, function(x){
+  fastme.bal(x)
+})
+
+#run model tests
+model_tests <- lapply(phylo_dat, function(x){
+  modelTest(x)
+})
+
+#create environments
+env <- lapply(model_tests, function(x){
+  attr(x, "env")
+})
+
+#Create list containing the best model for each family
+list_of_Models <- c("HKY+G+I", "HKY+G+I", "HKY+G+I", "HKY+G+I", "HKY+G+I", "HKY+G+I", "HKY+G+I", "HKY+G+I",
+                    "GTR+G+I", "HKY+G+I", "GTR+G+I", "HKY+G+I", "HKY+G+I", "HKY+G+I", "GTR+G+I")
+
+#get parameters for each model
+model_fit <- lapply(env, function(x){
+  eval(get(list_of_Models, x),x)
+})
+
 #Compute likelihood
 ML_Dyt <- pml(tree1, phyDatDyt, k=4, inv= 0.4681883)
 ML_Car <- pml(tree2, phyDatCara, k=4, inv= 0.5308776)
@@ -556,6 +498,7 @@ ML_Ela <- pml(tree12, phyDatEla, k=4, inv= 0.5619085)
 ML_Cryp <- pml(tree13, phyDatCryp, k=4, inv= 0.4869501)
 ML_Sci <- pml(tree14, phyDatSci, k=4, inv= 0.5677839)
 ML_Lat <- pml(tree15, phyDatLat, k=4, inv= 0.5619141)
+
 #Compute likelihood and optimize parameters
 #Change model based on results of model test
 ML_Dyt <- optim.pml(ML_Dyt, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "HKY")
@@ -590,22 +533,6 @@ ML_Tree_Ela <- ML_Ela$tree
 ML_Tree_Cryp <- ML_Cryp$tree
 ML_Tree_Sci <- ML_Sci$tree
 ML_Tree_Lat <- ML_Lat$tree
-#Plot trees
-plot(ML_Tree_Dyt)
-plot(ML_Tree_Car)
-plot(ML_Tree_Cur)
-plot(ML_Tree_Cocc)
-plot(ML_Tree_Lei)
-plot(ML_Tree_Chry)
-plot(ML_Tree_Bup)
-plot(ML_Tree_Hyd)
-plot(ML_Tree_Hal)
-plot(ML_Tree_Can)
-plot(ML_Tree_Gyr)
-plot(ML_Tree_Ela)
-plot(ML_Tree_Cryp)
-plot(ML_Tree_Sci)
-plot(ML_Tree_Lat)
 
 #Remove unneeded variables
 rm(env1, env2, env3, env4, env5, env6, env7, env8, env9, env10, env11, env12, env13, env14, env15, fit1, fit2, fit3, fit4, fit5, fit6, fit7, fit8, fit9, fit10, fit11, fit12, fit13, fit14, fit15, mt1, mt2, mt3, mt4, mt5, mt6, mt7, mt8, mt9, mt10, mt11, mt12, mt13, mt14, mt15, dm1, dm2, dm3, dm4, dm5, dm6, dm7, dm8, dm9, dm10, dm11, dm12, dm13, dm14, dm15, dm16, tree1, tree2, tree3, tree4, tree5, tree6, tree7, tree8, tree9, tree10, tree11, tree12, tree13, tree14, tree15, binNames, familyFileNames, familyList, familySequenceNames, referencefind1, referencefind2, referencefind3, referencefind4, referencefind5, referencefind6, referencefind7, referencefind8, referencefind9, referencefind10, referencefind11, referencefind12, referencefind13, referencefind14, referencefind15, referencefind16)
