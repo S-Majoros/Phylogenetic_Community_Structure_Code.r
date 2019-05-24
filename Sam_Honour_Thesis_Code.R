@@ -523,8 +523,8 @@ ML_Lat <- pml(tree15, phyDatLat, k=4, inv= 0.5619141)
 #could not get this section to work. Pretty sure it's something with the inv
 #inv_values <- c(0.4681883, 0.5308776, 0.5482425, 0.5581981, 0.5581981, 0.528835, 0.5104581, 0.5886127,
                 0.6695774, 0.5145766, 0.6361499, 0.5619085, 0.4869501, 0.5677839, 0.5619141)
-#pml_wrapper <- function(tree, phylo, inv){
-#  return(pml(tree, phylo, k=4, inv))
+#pml_wrapper <- function(tree, phylo_dat, inv_values){
+#  return(pml(tree, phylo_dat, k=4, inv_values))
 #}
 #ml_out <- mapply(pml_wrapper, tree, phylo_dat, inv_values)
 
@@ -598,103 +598,25 @@ dfAllSeq <- rbind(dfFilter_Churchill, dfFilter_NotChurchill)
 #Create a presence absence matrix for bin_uri in Churchill
 #Create new data frame
 dfAllSeq2 <- dfAllSeq [, c("bin_uri", "churchill", "family_name")]
-#Split into family dataframes and remove the family column
+#Split into family dataframes
 dfAllSeq2 <- split(dfAllSeq2, list(dfAllSeq$family_name))
-dfBuprestidae <- as.data.frame(dfAllSeq2[1])
-dfBuprestidae <- dfBuprestidae[, c("Buprestidae.bin_uri", "Buprestidae.churchill")]
-dfCantharidae <- as.data.frame(dfAllSeq2[2])
-dfCantharidae <- dfCantharidae[, c("Cantharidae.bin_uri", "Cantharidae.churchill")]
-dfCarabidae <- as.data.frame(dfAllSeq2[3])
-dfCarabidae <- dfCarabidae[, c("Carabidae.bin_uri", "Carabidae.churchill")]
-dfChrysomelidae <- as.data.frame(dfAllSeq2[4])
-dfChrysomelidae <- dfChrysomelidae[, c("Chrysomelidae.bin_uri", "Chrysomelidae.churchill")]
-dfCoccinellidae <- as.data.frame(dfAllSeq2[5])
-dfCoccinellidae <- dfCoccinellidae[, c("Coccinellidae.bin_uri", "Coccinellidae.churchill")]
-dfCryptophagidae <- as.data.frame(dfAllSeq2[6])
-dfCryptophagidae <- dfCryptophagidae[, c("Cryptophagidae.bin_uri", "Cryptophagidae.churchill")]
-dfCurculionidae <- as.data.frame(dfAllSeq2[7])
-dfCurculionidae <- dfCurculionidae[, c("Curculionidae.bin_uri", "Curculionidae.churchill")]
-dfDytiscidae <- as.data.frame(dfAllSeq2[8])
-dfDytiscidae <- dfDytiscidae[, c("Dytiscidae.bin_uri", "Dytiscidae.churchill")]
-dfElateridae <- as.data.frame(dfAllSeq2[9])
-dfElateridae <- dfElateridae[, c("Elateridae.bin_uri", "Elateridae.churchill")]
-dfGyrinidae <- as.data.frame(dfAllSeq2[10])
-dfGyrinidae <- dfGyrinidae[, c("Gyrinidae.bin_uri", "Gyrinidae.churchill")]
-dfHaliplidae <- as.data.frame(dfAllSeq2[11])
-dfHaliplidae <- dfHaliplidae[, c("Haliplidae.bin_uri", "Haliplidae.churchill")]
-dfHydrophilidae <- as.data.frame(dfAllSeq2[12])
-dfHydrophilidae <- dfHydrophilidae[, c("Hydrophilidae.bin_uri", "Hydrophilidae.churchill")]
-dfLatridiidae <- as.data.frame(dfAllSeq2[13])
-dfLatridiidae <- dfLatridiidae[, c("Latridiidae.bin_uri", "Latridiidae.churchill")]
-dfLeiodidae <- as.data.frame(dfAllSeq2[14])
-dfLeiodidae <- dfLeiodidae[, c("Leiodidae.bin_uri", "Leiodidae.churchill")]
-dfScirtidae <- as.data.frame(dfAllSeq2[15])
-dfScirtidae <- dfScirtidae[, c("Scirtidae.bin_uri", "Scirtidae.churchill")]
+#Removing Staphylinidae until issue is sorted out
+dfAllSeq2[16] <- NULL
+#Remove the family name column
+dfAllSeq2 <- lapply(dfAllSeq2, function(x){
+  x[,-3]
+})
 
 #Create family matrices
-Family_matrix1 <- melt(dfBuprestidae, id.var="Buprestidae.churchill")
-Family_matrix2 <- melt(dfCantharidae, id.var="Cantharidae.churchill")
-Family_matrix3 <- melt(dfCarabidae, id.var="Carabidae.churchill")
-Family_matrix4 <- melt(dfChrysomelidae, id.var="Chrysomelidae.churchill")
-Family_matrix5 <- melt(dfCoccinellidae, id.var="Coccinellidae.churchill")
-Family_matrix6 <- melt(dfCryptophagidae, id.var="Cryptophagidae.churchill")
-Family_matrix7 <- melt(dfCurculionidae, id.var="Curculionidae.churchill")
-Family_matrix8 <- melt(dfDytiscidae, id.var="Dytiscidae.churchill")
-Family_matrix9 <- melt(dfElateridae, id.var="Elateridae.churchill")
-Family_matrix10 <- melt(dfGyrinidae, id.var="Gyrinidae.churchill")
-Family_matrix11 <- melt(dfHaliplidae, id.var="Haliplidae.churchill")
-Family_matrix12 <- melt(dfHydrophilidae, id.var="Hydrophilidae.churchill")
-Family_matrix13 <- melt(dfLatridiidae, id.var="Latridiidae.churchill")
-Family_matrix14 <- melt(dfLeiodidae, id.var="Leiodidae.churchill")
-Family_matrix15 <- melt(dfScirtidae, id.var="Scirtidae.churchill")
-
-Family_matrix1 <- with(Family_matrix1, table(Buprestidae.churchill, value))
-Family_matrix2 <- with(Family_matrix2, table(Cantharidae.churchill, value))
-Family_matrix3 <- with(Family_matrix3, table(Carabidae.churchill, value))
-Family_matrix4 <- with(Family_matrix4, table(Chrysomelidae.churchill, value))
-Family_matrix5 <- with(Family_matrix5, table(Coccinellidae.churchill, value))
-Family_matrix6 <- with(Family_matrix6, table(Cryptophagidae.churchill, value))
-Family_matrix7 <- with(Family_matrix7, table(Curculionidae.churchill, value))
-Family_matrix8 <- with(Family_matrix8, table(Dytiscidae.churchill, value))
-Family_matrix9 <- with(Family_matrix9, table(Elateridae.churchill, value))
-Family_matrix10 <- with(Family_matrix10, table(Gyrinidae.churchill, value))
-Family_matrix11 <- with(Family_matrix11, table(Haliplidae.churchill, value))
-Family_matrix12 <- with(Family_matrix12, table(Hydrophilidae.churchill, value))
-Family_matrix13 <- with(Family_matrix13, table(Latridiidae.churchill, value))
-Family_matrix14 <- with(Family_matrix14, table(Leiodidae.churchill, value))
-Family_matrix15 <- with(Family_matrix15, table(Scirtidae.churchill, value))
-
-Family_matrix1[Family_matrix1 > 1] <- 1
-Family_matrix2[Family_matrix2 > 1] <- 1
-Family_matrix3[Family_matrix3 > 1] <- 1
-Family_matrix4[Family_matrix4 > 1] <- 1
-Family_matrix5[Family_matrix5 > 1] <- 1
-Family_matrix6[Family_matrix6 > 1] <- 1
-Family_matrix7[Family_matrix7 > 1] <- 1
-Family_matrix8[Family_matrix8 > 1] <- 1
-Family_matrix9[Family_matrix9 > 1] <- 1
-Family_matrix10[Family_matrix10 > 1] <- 1
-Family_matrix11[Family_matrix11 > 1] <- 1
-Family_matrix12[Family_matrix12 > 1] <- 1
-Family_matrix13[Family_matrix13 > 1] <- 1
-Family_matrix14[Family_matrix14 > 1] <- 1
-Family_matrix15[Family_matrix15 > 1] <- 1
-
-Family_matrix1 <- unclass(Family_matrix1)
-Family_matrix2 <- unclass(Family_matrix2)
-Family_matrix3 <- unclass(Family_matrix3)
-Family_matrix4 <- unclass(Family_matrix4)
-Family_matrix5 <- unclass(Family_matrix5)
-Family_matrix6 <- unclass(Family_matrix6)
-Family_matrix7 <- unclass(Family_matrix7)
-Family_matrix8 <- unclass(Family_matrix8)
-Family_matrix9 <- unclass(Family_matrix9)
-Family_matrix10 <- unclass(Family_matrix10)
-Family_matrix11 <- unclass(Family_matrix11)
-Family_matrix12 <- unclass(Family_matrix12)
-Family_matrix13 <- unclass(Family_matrix13)
-Family_matrix14 <- unclass(Family_matrix14)
-Family_matrix15 <- unclass(Family_matrix15)
+#create family matrices
+Family_matrices <- lapply(dfAllSeq2, function(x){
+  melt(x, id.var="churchill")
+})
+Family_matrices <- lapply(Family_matrices, as.data.frame)
+Family_matrices <- lapply(Family_matrices, function(x){
+  with(x, table(churchill, value))
+})
+Family_matrices <- lapply(Family_matrices, unclass)
 
 #Calculate net relatedness index (NRI) and nearest taxon index (NTI) using ML Tree
 #Ensure ML tree is in correct format
@@ -714,6 +636,9 @@ phy.dist13 <- cophenetic(ML_Tree_Lat)
 phy.dist14 <- cophenetic(ML_Tree_Lei)
 phy.dist15 <- cophenetic(ML_Tree_Sci)
 
+#untested
+#phy.dist <- lapply(ML_Trees, cophenetic)
+
 #Calculate NRI
 ses.mpd.result_ML_Bup <- ses.mpd(Family_matrix1, phy.dist1, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
 ses.mpd.result_ML_Can <- ses.mpd(Family_matrix2, phy.dist2, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
@@ -731,6 +656,12 @@ ses.mpd.result_ML_Lat <- ses.mpd(Family_matrix13, phy.dist13, null.model = "taxa
 ses.mpd.result_ML_Lei <- ses.mpd(Family_matrix14, phy.dist14, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
 ses.mpd.result_ML_Sci <- ses.mpd(Family_matrix15, phy.dist15, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
 
+#Untested
+#NRI_wrapper <- function(Family_matrices, phy.dist){
+#  return(ses.mpd(Family_matrices, phy.dist, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000))
+#  }
+#NRI_Results <- mapply(NRI_wrapper, Family_matrices, phy.dist)
+
 #Calculate NTI
 ses.mntd.result_ML_Bup <- ses.mntd(Family_matrix1, phy.dist1, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
 ses.mntd.result_ML_Can <- ses.mntd(Family_matrix2, phy.dist2, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
@@ -747,6 +678,12 @@ ses.mntd.result_ML_Hyd <- ses.mntd(Family_matrix12, phy.dist12, null.model = "ta
 ses.mntd.result_ML_Lat <- ses.mntd(Family_matrix13, phy.dist13, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
 ses.mntd.result_ML_Lei <- ses.mntd(Family_matrix14, phy.dist14, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
 ses.mntd.result_ML_Sci <- ses.mntd(Family_matrix15, phy.dist15, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
+
+#untested
+#NTI_wrapper <- function(Family_matrices, phy.dist){
+#  return(ses.mntd(Family_matrices, phy.dist, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000))
+#}
+#NTI_Results <- mapply(NTI_wrapper, Family_matrices, phy.dist)
 
 #Remove unneeded variables
 rm(env, Family_phyDat, fit, mt, phy.dist, dm, dfFilter_Churchill, dfFilter_NotChurchill, ChurchillFilter, NotChurchillFilter, dfAllseq2)
