@@ -390,55 +390,20 @@ dfFamilyDNA <- merge(FamilyDNA, dfAllSeq, by.x = "bin_uri", by.y = "bin_uri", al
 #Rename the coloumn with your aligned sequences
 colnames(dfFamilyDNA)[2] <- "FinalSequences"
 
-#remove reference sequences
-referencefind1 <- which(dfFamilyDNA$bin_uri == "reference")
-dfFamilyDNA <- dfFamilyDNA[-referencefind1, ]
-referencefind2 <- which(dfFamilyDNA$bin_uri == "reference1")
-dfFamilyDNA <- dfFamilyDNA[-referencefind2, ]
-referencefind3 <- which(dfFamilyDNA$bin_uri == "reference2")
-dfFamilyDNA <- dfFamilyDNA[-referencefind3, ]
-referencefind4 <- which(dfFamilyDNA$bin_uri == "reference3")
-dfFamilyDNA <- dfFamilyDNA[-referencefind4, ]
-referencefind5 <- which(dfFamilyDNA$bin_uri == "reference4")
-dfFamilyDNA <- dfFamilyDNA[-referencefind5, ]
-referencefind6 <- which(dfFamilyDNA$bin_uri == "reference5")
-dfFamilyDNA <- dfFamilyDNA[-referencefind6, ]
-referencefind7 <- which(dfFamilyDNA$bin_uri == "reference6")
-dfFamilyDNA <- dfFamilyDNA[-referencefind7, ]
-referencefind8 <- which(dfFamilyDNA$bin_uri == "reference7")
-dfFamilyDNA <- dfFamilyDNA[-referencefind8, ]
-referencefind9 <- which(dfFamilyDNA$bin_uri == "reference8")
-dfFamilyDNA <- dfFamilyDNA[-referencefind9, ]
-referencefind10 <- which(dfFamilyDNA$bin_uri == "reference9")
-dfFamilyDNA <- dfFamilyDNA[-referencefind10, ]
-referencefind11 <- which(dfFamilyDNA$bin_uri == "reference10")
-dfFamilyDNA <- dfFamilyDNA[-referencefind11, ]
-referencefind12 <- which(dfFamilyDNA$bin_uri == "reference11")
-dfFamilyDNA <- dfFamilyDNA[-referencefind12, ]
-referencefind13 <- which(dfFamilyDNA$bin_uri == "reference12")
-dfFamilyDNA <- dfFamilyDNA[-referencefind13, ]
-referencefind14 <- which(dfFamilyDNA$bin_uri == "reference13")
-dfFamilyDNA <- dfFamilyDNA[-referencefind14, ]
-referencefind15 <- which(dfFamilyDNA$bin_uri == "reference14")
-dfFamilyDNA <- dfFamilyDNA[-referencefind15, ]
-referencefind16 <- which(dfFamilyDNA$bin_uri == "reference15")
-dfFamilyDNA <- dfFamilyDNA[-referencefind16, ]
-
 #create function to get reference names
-#removes all references but one. One reference is only "reference" without a number. This one is left.
-#get_reference_names <- function(top_ref_num = 15){
-  #the highest number used in the references is passed in, default is 15
-#  ref_names <- c()
-#  prefix <- "reference"
-#  for(i in 1:top_ref_num){
-#    new_str <- paste(prefix, as.character(i), sep='')
-#    ref_names <- c(ref_names, new_str)
-#  }
-#  return(ref_names)
-#}
-#reference_names = get_reference_names()
+get_reference_names <- function(top_ref_num = 15){
+  ref_names <- c("reference")
+  prefix <- "reference"
+  for(i in 1:top_ref_num){
+    new_str <- paste(prefix, as.character(i), sep='')
+    ref_names <- c(ref_names, new_str)
+  }
+  return(ref_names)
+}
+#create list of reference names
+reference_names = get_reference_names()
 #remove reference from dataframe
-#dfFamilyDNA <- dfFamilyDNA[!dfFamilyDNA$bin_uri %in% reference_names , ]
+dfFamilyDNA <- dfFamilyDNA[!dfFamilyDNA$bin_uri %in% reference_names , ]
 
 #Pull names from dataframe
 familyList <- lapply(unique(dfFamilyDNA$family_name),
