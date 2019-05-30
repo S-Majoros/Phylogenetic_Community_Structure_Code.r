@@ -396,6 +396,36 @@ x = lapply(dnaStringSet4, as.data.frame)
 FamilyDNA <- rbind(lapply(dnaStringSet4, as.data.frame))
 
 length(FamilyDNA) == length(dfAllSeq[,1])
+
+
+# Cam's second suggestion after we figured out the rbind following the first solution wasn't doing what we hoped.
+# this just does the repeated block of code in a loop
+
+#Toy example I used to devise solution, stand in for the data structures:
+#omit here to line 415
+x1 = list(y= 2, z=5)
+x2 = list(y= 4, z=7)
+x3 = list(y= 6, z=9)
+x4 = list(y= 7, z=11)
+
+dnaStringSet4 = list(dat1 = x1, 
+						dat2 = x2, 
+						dat3 = x3, 
+						dat4 = x4)
+
+
+dna_string_to_df = function(dna_string_set){
+	out_df = as.data.frame(dna_string_set[[1]])
+	for(i in 2:length(dna_string_set)){
+		new_df = as.data.frame(dna_string_set[[i]])
+		out_df = rbind(out_df, new_df)
+	}
+	return(out_df)
+}
+
+FamilyDNA = dna_string_to_df(dnaStringSet4)
+
+
 ##########################################
 
 
