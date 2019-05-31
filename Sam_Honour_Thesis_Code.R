@@ -458,9 +458,15 @@ env <- lapply(model_tests, function(x){
   attr(x, "env")
 })
 
-#Create list containing the best model for each family
-list_of_Models <- c("HKY+G+I", "HKY+G+I", "HKY+G+I", "HKY+G+I", "HKY+G+I", "HKY+G+I", "HKY+G+I", "HKY+G+I",
-                    "GTR+G+I", "HKY+G+I", "GTR+G+I", "HKY+G+I", "HKY+G+I", "HKY+G+I", "GTR+G+I")
+#create function to find best model for each family
+get_best_model = function(model_df){
+  best_model = model_df['Model'][model_df['BIC'] == min(model_df['BIC']) ]
+  return(best_model)
+}
+#create a vector containing the best models
+list_of_Models = unlist(lapply(model_tests, function(x){
+  get_best_model(x)
+}))
 
 #get parameters for each model
 model_fit <- lapply(env, function(x){
