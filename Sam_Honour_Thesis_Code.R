@@ -482,29 +482,13 @@ ml_out = lapply(1:length(tree), function(i){
   pml(tree[[i]], phylo_dat[[i]], k=4, inv = inv_values[[i]])
 })
 
-#Compute likelihood and optimize parameters
-#Change model based on results of model test
-ML_Dyt <- optim.pml(ML_Dyt, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "HKY")
-ML_Car <- optim.pml(ML_Car, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "HKY")
-ML_Cur <- optim.pml(ML_Cur, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "HKY")
-ML_Cocc <- optim.pml(ML_Cocc, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "HKY")
-ML_Lei <- optim.pml(ML_Lei, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "HKY")
-ML_Chry <- optim.pml(ML_Chry, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "HKY")
-ML_Bup <- optim.pml(ML_Bup, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "HKY")
-ML_Hyd <- optim.pml(ML_Hyd, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "HKY")
-ML_Hal <- optim.pml(ML_Hal, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "GTR")
-ML_Can <- optim.pml(ML_Can, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "HKY")
-ML_Gyr <- optim.pml(ML_Gyr, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "GTR")
-ML_Ela <- optim.pml(ML_Ela, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "HKY")
-ML_Cryp <- optim.pml(ML_Cryp, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "HKY")
-ML_Sci <- optim.pml(ML_Sci, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "HKY")
-ML_Lat <- optim.pml(ML_Lat, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "GTR")
-
-#Compute Liklihood and optimize parameters
-#Untested
-#ml_out <- lapply(ml_out, function(x){
-#  optim.pml(x, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "HKY")
-#})
+#create new list of models
+#it needed the models without the "+G+I" on the end. Not sure how to get rid of that, so I made a new vector.
+model_list <- c("HKY", "HKY", "HKY", "HKY", "HKY", "HKY", "HKY", "HKY", "GTR", "HKY", "GTR", "HKY", "HKY", "HKY", "GTR")
+#compute likelihood and optimize parameters
+ml_families = lapply(1:length(ml_out), function(i){
+  optim.pml(ml_out[[i]], optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = model_list[[i]])
+})
 
 #Create seperate variable for tree
 ML_Tree_Dyt <- ML_Dyt$tree
