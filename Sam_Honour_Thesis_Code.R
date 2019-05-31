@@ -508,7 +508,7 @@ ML_Tree_Sci <- ML_Sci$tree
 ML_Tree_Lat <- ML_Lat$tree
 
 #pull out the trees
-#untested
+#can't get this to work. Gives me the error "incorrect number of dimensions"
 #ml_trees <- lapply(ml_out, function(x){
 #  x['tree',]
 #})
