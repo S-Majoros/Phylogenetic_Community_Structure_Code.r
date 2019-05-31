@@ -473,31 +473,14 @@ model_fit <- lapply(env, function(x){
   eval(get(list_of_Models, x),x)
 })
 
-#Compute likelihood
-ML_Dyt <- pml(tree1, phyDatDyt, k=4, inv= 0.4681883)
-ML_Car <- pml(tree2, phyDatCara, k=4, inv= 0.5308776)
-ML_Cur <- pml(tree3, phyDatCur, k=4, inv= 0.5482425)
-ML_Cocc <- pml(tree4, phyDatCocc, k=4, inv= 0.5581981)
-ML_Lei <- pml(tree5, phyDatLei, k=4, inv= 0.5581981)
-ML_Chry <- pml(tree6, phyDatChry, k=4, inv= 0.528835)
-ML_Bup <- pml(tree7, phyDatBup, k=4, inv= 0.5104581)
-ML_Hyd <- pml(tree8, phyDatHyd, k=4, inv= 0.5886127)
-ML_Hal <- pml(tree9, phyDatHal, k=4, inv= 0.6695774)
-ML_Can <- pml(tree10, phyDatCan, k=4, inv= 0.5145766)
-ML_Gyr <- pml(tree11, phyDatGyr, k=4, inv= 0.6361499)
-ML_Ela <- pml(tree12, phyDatEla, k=4, inv= 0.5619085)
-ML_Cryp <- pml(tree13, phyDatCryp, k=4, inv= 0.4869501)
-ML_Sci <- pml(tree14, phyDatSci, k=4, inv= 0.5677839)
-ML_Lat <- pml(tree15, phyDatLat, k=4, inv= 0.5619141)
-
-#Compute likelihood
-#could not get this section to work. Pretty sure it's something with the inv
-#inv_values <- c(0.4681883, 0.5308776, 0.5482425, 0.5581981, 0.5581981, 0.528835, 0.5104581, 0.5886127,
+#create vector containing inv values
+#still cannot find inv values to make this more efficient
+inv_values <- c(0.4681883, 0.5308776, 0.5482425, 0.5581981, 0.5581981, 0.528835, 0.5104581, 0.5886127,
                 0.6695774, 0.5145766, 0.6361499, 0.5619085, 0.4869501, 0.5677839, 0.5619141)
-#pml_wrapper <- function(tree, phylo_dat, inv_values){
-#  return(pml(tree, phylo_dat, k=4, inv_values))
-#}
-#ml_out <- mapply(pml_wrapper, tree, phylo_dat, inv_values)
+#compute likelihood
+ml_out = lapply(1:length(tree), function(i){
+  pml(tree[[i]], phylo_dat[[i]], k=4, inv = inv_values[[i]])
+})
 
 #Compute likelihood and optimize parameters
 #Change model based on results of model test
