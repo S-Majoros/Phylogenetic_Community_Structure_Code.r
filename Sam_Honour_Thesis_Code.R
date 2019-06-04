@@ -359,28 +359,17 @@ rm(alignmentFinal, alignmentNames, alignmentSequencesPlusRef, dnaStringSet3, fam
 
 #Part 4: Create Maximum Liklihood tree----
 
-#create dataframes for each family
-FamilyDNA1 <- as.data.frame(dnaStringSet4[[1]])
-FamilyDNA2 <- as.data.frame(dnaStringSet4[[2]])
-FamilyDNA3 <- as.data.frame(dnaStringSet4[[3]])
-FamilyDNA4 <- as.data.frame(dnaStringSet4[[4]])
-FamilyDNA5 <- as.data.frame(dnaStringSet4[[5]])
-FamilyDNA6 <- as.data.frame(dnaStringSet4[[6]])
-FamilyDNA7 <- as.data.frame(dnaStringSet4[[7]])
-FamilyDNA8 <- as.data.frame(dnaStringSet4[[8]])
-FamilyDNA9 <- as.data.frame(dnaStringSet4[[9]])
-FamilyDNA10 <- as.data.frame(dnaStringSet4[[10]])
-FamilyDNA11 <- as.data.frame(dnaStringSet4[[11]])
-FamilyDNA12 <- as.data.frame(dnaStringSet4[[12]])
-FamilyDNA13 <- as.data.frame(dnaStringSet4[[13]])
-FamilyDNA14 <- as.data.frame(dnaStringSet4[[14]])
-FamilyDNA15 <- as.data.frame(dnaStringSet4[[15]])
-FamilyDNA16 <- as.data.frame(dnaStringSet4[[16]])
-FamilyDNA <- rbind(FamilyDNA1, FamilyDNA2, FamilyDNA3, FamilyDNA4, FamilyDNA5, FamilyDNA6, FamilyDNA7, FamilyDNA8, FamilyDNA9, FamilyDNA10, FamilyDNA11, FamilyDNA12, FamilyDNA13, FamilyDNA14, FamilyDNA15, FamilyDNA16)
-
-#Convert each dnaStringSet into a data frame
-#currently causes issues later
-#FamilyDNA <- lapply(dnaStringSet4, as.data.frame)
+#Create function to convert DNAStringSets to dataframes
+dna_string_to_df = function(dna_string_set){
+  out_df = as.data.frame(dna_string_set[[1]])
+  for(i in 2:length(dna_string_set)){
+    new_df = as.data.frame(dna_string_set[[i]])
+    out_df = rbind(out_df, new_df)
+  }
+  return(out_df)
+}
+#convert stringsets to dataframes
+FamilyDNA = dna_string_to_df(dnaStringSet4)
 
 #Add the bin_uri
 FamilyDNA$bin_uri <- row.names(FamilyDNA)
