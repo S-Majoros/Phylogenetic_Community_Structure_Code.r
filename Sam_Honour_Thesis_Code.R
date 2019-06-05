@@ -479,31 +479,12 @@ ml_families = lapply(1:length(ml_out), function(i){
   optim.pml(ml_out[[i]], optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = model_list[[i]])
 })
 
-#Create seperate variable for tree
-ML_Tree_Dyt <- ML_Dyt$tree
-ML_Tree_Car <- ML_Car$tree
-ML_Tree_Cur <- ML_Cur$tree
-ML_Tree_Cocc <- ML_Cocc$tree
-ML_Tree_Lei <- ML_Lei$tree
-ML_Tree_Chry <- ML_Chry$tree
-ML_Tree_Bup <- ML_Bup$tree
-ML_Tree_Hyd <- ML_Hyd$tree
-ML_Tree_Hal <- ML_Hal$tree
-ML_Tree_Can <- ML_Can$tree
-ML_Tree_Gyr <- ML_Gyr$tree
-ML_Tree_Ela <- ML_Ela$tree
-ML_Tree_Cryp <- ML_Cryp$tree
-ML_Tree_Sci <- ML_Sci$tree
-ML_Tree_Lat <- ML_Lat$tree
-
-#pull out the trees
-#can't get this to work. Gives me the error "incorrect number of dimensions"
-#ml_trees <- lapply(ml_out, function(x){
-#  x['tree',]
-#})
+#Create seperate variable for trees
+ML_Trees <- lapply(ml_families, function(x){
+  x$tree})
 
 #Remove unneeded variables
-rm(env, tree, model_tests, model_fit, dm, binNames, familyFileNames, familyList, familySequenceNames, referencefind1, referencefind2, referencefind3, referencefind4, referencefind5, referencefind6, referencefind7, referencefind8, referencefind9, referencefind10, referencefind11, referencefind12, referencefind13, referencefind14, referencefind15, referencefind16)
+rm(env, tree, model_tests, model_fit, dm, binNames, familyFileNames, familyList, familySequenceNames)
 
 #Part 5: NTI and NRI----
 
