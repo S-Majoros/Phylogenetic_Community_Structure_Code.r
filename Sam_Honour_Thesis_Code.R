@@ -415,13 +415,11 @@ familyFileNames <- foreach(i=1:length(familyFileNames)) %do%
 foreach(i=1:length(dnaStringSet5)) %do% writeXStringSet(dnaStringSet5[[i]], file=familyFileNames[[i]], format="fasta")
 
 #create a list of alignment files
-list_of_files <- c("AlignmentDytiscidae.fas", "AlignmentCarabidae.fas",
-                  "AlignmentCurculionidae.fas","AlignmentCoccinellidae.fas","AlignmentLeiodidae.fas",
-                  "AlignmentChrysomelidae.fas","AlignmentBuprestidae.fas","AlignmentHydrophilidae.fas",
-                  "AlignmentHaliplidae.fas", "AlignmentCantharidae.fas", "AlignmentGyrinidae.fas",
-                  "AlignmentElateridae.fas","AlignmentCryptophagidae.fas", "AlignmentScirtidae.fas",
-                  "AlignmentLatridiidae.fas")
-
+list_of_files <- c("AlignmentBuprestidae.fas", "AlignmentCantharidae.fas", "AlignmentCarabidae.fas",
+                   "AlignmentChrysomelidae.fas", "AlignmentCoccinellidae.fas", "AlignmentCryptophagidae.fas",
+                   "AlignmentCurculionidae.fas", "AlignmentDytiscidae.fas", "AlignmentElateridae.fas",
+                   "AlignmentGyrinidae.fas","AlignmentHaliplidae.fas", "AlignmentHydrophilidae.fas",
+                   "AlignmentLatridiidae.fas", "AlignmentLeiodidae.fas", "AlignmentScirtidae.fas")
 #read the alignments into phyDat format
 phylo_dat <- lapply(list_of_files, function(x){
   read.phyDat(x, format="fasta", type="DNA")
@@ -464,8 +462,8 @@ model_fit <- lapply(env, function(x){
 
 #create vector containing inv values
 #still cannot find inv values to make this more efficient
-inv_values <- c(0.4681883, 0.5308776, 0.5482425, 0.5581981, 0.5581981, 0.528835, 0.5104581, 0.5886127,
-                0.6695774, 0.5145766, 0.6361499, 0.5619085, 0.4869501, 0.5677839, 0.5619141)
+inv_values <- c(0.5371372, 0.5474856, 0.6097982, 0.5844742, 0.5159081, 0.5100146, 0.5669723, 0.5671735,
+                0.6275394, 0.6067869, 0.6513196, 0.5768033, 0.551333, 0.6149614, 0.5677043)
 #compute likelihood
 ml_out = lapply(1:length(tree), function(i){
   pml(tree[[i]], phylo_dat[[i]], k=4, inv = inv_values[[i]])
@@ -473,7 +471,7 @@ ml_out = lapply(1:length(tree), function(i){
 
 #create new list of models
 #it needed the models without the "+G+I" on the end. Not sure how to get rid of that, so I made a new vector.
-model_list <- c("HKY", "HKY", "HKY", "HKY", "HKY", "HKY", "HKY", "HKY", "GTR", "HKY", "GTR", "HKY", "HKY", "HKY", "GTR")
+model_list <- c("HKY", "HKY", "HKY", "HKY", "HKY", "HKY", "HKY", "HKY", "HKY", "GTR", "GTR", "HKY", "GTR", "HKY", "HKY")
 #compute likelihood and optimize parameters
 ml_families = lapply(1:length(ml_out), function(i){
   optim.pml(ml_out[[i]], optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = model_list[[i]])
@@ -484,7 +482,7 @@ ML_Trees <- lapply(ml_families, function(x){
   x$tree})
 
 #Remove unneeded variables
-rm(env, tree, model_tests, model_fit, dm, binNames, familyFileNames, familyList, familySequenceNames)
+rm(env, tree, model_tests, model_fit, dm, binNames, familyFileNames, familyList, dfFamilyDNA, dnaStringSet4, dnaStringSet5, FamilyDNA, ml_families, ml_out)
 
 #Part 5: NTI and NRI----
 
@@ -528,73 +526,20 @@ Family_matrices <- lapply(Family_matrices, unclass)
 
 #Calculate net relatedness index (NRI) and nearest taxon index (NTI) using ML Tree
 #Ensure ML tree is in correct format
-phy.dist1 <- cophenetic(ML_Tree_Bup)
-phy.dist2 <- cophenetic(ML_Tree_Can)
-phy.dist3 <- cophenetic(ML_Tree_Car)
-phy.dist4 <- cophenetic(ML_Tree_Chry)
-phy.dist5 <- cophenetic(ML_Tree_Cocc)
-phy.dist6 <- cophenetic(ML_Tree_Cryp)
-phy.dist7 <- cophenetic(ML_Tree_Cur)
-phy.dist8 <- cophenetic(ML_Tree_Dyt)
-phy.dist9 <- cophenetic(ML_Tree_Ela)
-phy.dist10 <- cophenetic(ML_Tree_Gyr)
-phy.dist11 <- cophenetic(ML_Tree_Hal)
-phy.dist12 <- cophenetic(ML_Tree_Hyd)
-phy.dist13 <- cophenetic(ML_Tree_Lat)
-phy.dist14 <- cophenetic(ML_Tree_Lei)
-phy.dist15 <- cophenetic(ML_Tree_Sci)
-
-#untested
-#phy.dist <- lapply(ML_Trees, cophenetic)
+phy.dist <- lapply(ML_Trees, cophenetic)
 
 #Calculate NRI
-ses.mpd.result_ML_Bup <- ses.mpd(Family_matrix1, phy.dist1, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mpd.result_ML_Can <- ses.mpd(Family_matrix2, phy.dist2, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mpd.result_ML_Car <- ses.mpd(Family_matrix3, phy.dist3, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mpd.result_ML_Chry <- ses.mpd(Family_matrix4, phy.dist4, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mpd.result_ML_Cocc <- ses.mpd(Family_matrix5, phy.dist5, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mpd.result_ML_Cryp <- ses.mpd(Family_matrix6, phy.dist6, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mpd.result_ML_Cur <- ses.mpd(Family_matrix7, phy.dist7, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mpd.result_ML_Dyt <- ses.mpd(Family_matrix8, phy.dist8, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mpd.result_ML_Ela <- ses.mpd(Family_matrix9, phy.dist9, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mpd.result_ML_Gyr <- ses.mpd(Family_matrix10, phy.dist10, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mpd.result_ML_Hal <- ses.mpd(Family_matrix11, phy.dist11, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mpd.result_ML_Hyd <- ses.mpd(Family_matrix12, phy.dist12, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mpd.result_ML_Lat <- ses.mpd(Family_matrix13, phy.dist13, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mpd.result_ML_Lei <- ses.mpd(Family_matrix14, phy.dist14, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mpd.result_ML_Sci <- ses.mpd(Family_matrix15, phy.dist15, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-
-#Untested
-#NRI_wrapper <- function(Family_matrices, phy.dist){
-#  return(ses.mpd(Family_matrices, phy.dist, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000))
-#  }
-#NRI_Results <- mapply(NRI_wrapper, Family_matrices, phy.dist)
+NRI_Results = lapply(1:length(phy.dist), function(i){
+  ses.mpd(Family_matrices[[i]], phy.dist[[i]], null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
+})
 
 #Calculate NTI
-ses.mntd.result_ML_Bup <- ses.mntd(Family_matrix1, phy.dist1, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mntd.result_ML_Can <- ses.mntd(Family_matrix2, phy.dist2, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mntd.result_ML_Car <- ses.mntd(Family_matrix3, phy.dist3, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mntd.result_ML_Chry <- ses.mntd(Family_matrix4, phy.dist4, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mntd.result_ML_Cocc <- ses.mntd(Family_matrix5, phy.dist5, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mntd.result_ML_Cryp <- ses.mntd(Family_matrix6, phy.dist6, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mntd.result_ML_Cur <- ses.mntd(Family_matrix7, phy.dist7, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mntd.result_ML_Dyt <- ses.mntd(Family_matrix8, phy.dist8, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mntd.result_ML_Ela <- ses.mntd(Family_matrix9, phy.dist9, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mntd.result_ML_Gyr <- ses.mntd(Family_matrix10, phy.dist10, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mntd.result_ML_Hal <- ses.mntd(Family_matrix11, phy.dist11, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mntd.result_ML_Hyd <- ses.mntd(Family_matrix12, phy.dist12, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mntd.result_ML_Lat <- ses.mntd(Family_matrix13, phy.dist13, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mntd.result_ML_Lei <- ses.mntd(Family_matrix14, phy.dist14, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mntd.result_ML_Sci <- ses.mntd(Family_matrix15, phy.dist15, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-
-#untested
-#NTI_wrapper <- function(Family_matrices, phy.dist){
-#  return(ses.mntd(Family_matrices, phy.dist, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000))
-#}
-#NTI_Results <- mapply(NTI_wrapper, Family_matrices, phy.dist)
+NTI_Results = lapply(1:length(phy.dist), function(i){
+  ses.mntd(Family_matrices[[i]], phy.dist[[i]], null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
+})
 
 #Remove unneeded variables
-rm(env, Family_phyDat, fit, mt, phy.dist, dm, dfFilter_Churchill, dfFilter_NotChurchill, ChurchillFilter, NotChurchillFilter, dfAllseq2)
+rm(Family_phyDat, phy.dist, dfFilter_Churchill, dfFilter_NotChurchill, ChurchillFilter, NotChurchillFilter, dfAllSeq2, Family_matrices)
 
 #Part 6: Trait Analysis: ANOVA----
 
