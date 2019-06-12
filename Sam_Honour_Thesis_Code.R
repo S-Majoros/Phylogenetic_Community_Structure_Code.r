@@ -475,13 +475,9 @@ model_fit <- lapply(env, function(x){
 })
 
 #create vector containing inv values
-#still cannot find inv values to make this more efficient
-# ^ can we discuss where they came from originally? want to make sure things are reproducible
-inv_values <- c(0.5371372, 0.5474856, 0.6097982, 0.5844742, 0.5159081, 0.5100146, 0.5669723, 0.5671735,
-                0.6275394, 0.6067869, 0.6513196, 0.5768033, 0.551333, 0.6149614, 0.5677043)
-
-#inv is passed into the pml likelihood of a phylogenetic tree, given a tree and some other values
-#inv= proportion of invariable sites
+inv_values <- lapply(1:length(model_fit), function(i){
+  model_fit[[i]]$inv
+})
 
 #compute likelihood
 ml_out = lapply(1:length(tree), function(i){
