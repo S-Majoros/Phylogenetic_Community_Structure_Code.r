@@ -484,11 +484,7 @@ ml_out = lapply(1:length(tree), function(i){
   pml(tree[[i]], phylo_dat[[i]], k=4, inv = inv_values[[i]])
 })
 
-#create new list of models
-#it needed the models without the "+G+I" on the end. Not sure how to get rid of that, so I made a new vector.
-model_list <- c("HKY", "HKY", "HKY", "HKY", "HKY", "HKY", "HKY", "HKY", "HKY", "GTR", "GTR", "HKY", "GTR", "HKY", "HKY")
-
-#this line drops the suffix from each of the model names
+#drop the suffix from each of the model names
 new_list_of_models = unlist(lapply(list_of_models , function(x){unlist(strsplit(x, "\\+"))[[1]]}))
 
 #I added a line to the function above and it removes everything after the '+' in the model name
