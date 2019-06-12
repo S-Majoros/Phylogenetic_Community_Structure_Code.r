@@ -414,12 +414,23 @@ familyFileNames <- foreach(i=1:length(familyFileNames)) %do%
 #Send to your desired working directory
 foreach(i=1:length(dnaStringSet5)) %do% writeXStringSet(dnaStringSet5[[i]], file=familyFileNames[[i]], format="fasta")
 
+################################################################
+#for cam's computer only:
+list_of_files <- c("../data/AlignmentDytiscidae.fas", "../data/AlignmentCarabidae.fas",
+                   "../data/AlignmentCurculionidae.fas","../data/AlignmentCoccinellidae.fas","../data/AlignmentLeiodidae.fas",
+                   "../data/AlignmentChrysomelidae.fas","../data/AlignmentBuprestidae.fas","../data/AlignmentHydrophilidae.fas",
+                   "../data/AlignmentHaliplidae.fas", "../data/AlignmentCantharidae.fas", "../data/AlignmentGyrinidae.fas",
+                   "../data/AlignmentElateridae.fas","../data/AlignmentCryptophagidae.fas", "../data/AlignmentScirtidae.fas",
+                   "../data/AlignmentLatridiidae.fas")
+###################################################################################
+
 #create a list of alignment files
 list_of_files <- c("AlignmentBuprestidae.fas", "AlignmentCantharidae.fas", "AlignmentCarabidae.fas",
                    "AlignmentChrysomelidae.fas", "AlignmentCoccinellidae.fas", "AlignmentCryptophagidae.fas",
                    "AlignmentCurculionidae.fas", "AlignmentDytiscidae.fas", "AlignmentElateridae.fas",
                    "AlignmentGyrinidae.fas","AlignmentHaliplidae.fas", "AlignmentHydrophilidae.fas",
                    "AlignmentLatridiidae.fas", "AlignmentLeiodidae.fas", "AlignmentScirtidae.fas")
+
 #read the alignments into phyDat format
 phylo_dat <- lapply(list_of_files, function(x){
   read.phyDat(x, format="fasta", type="DNA")
@@ -450,20 +461,28 @@ get_best_model = function(model_df){
   best_model = model_df['Model'][model_df['BIC'] == min(model_df['BIC']) ]
   return(best_model)
 }
+
 #create a vector containing the best models
-list_of_Models = unlist(lapply(model_tests, function(x){
+list_of_models = unlist(lapply(model_tests, function(x){
   get_best_model(x)
 }))
 
+
 #get parameters for each model
+
 model_fit <- lapply(env, function(x){
-  eval(get(list_of_Models, x),x)
+  eval(get(list_of_models, x),x)
 })
 
 #create vector containing inv values
 #still cannot find inv values to make this more efficient
+# ^ can we discuss where they came from originally? want to make sure things are reproducible
 inv_values <- c(0.5371372, 0.5474856, 0.6097982, 0.5844742, 0.5159081, 0.5100146, 0.5669723, 0.5671735,
                 0.6275394, 0.6067869, 0.6513196, 0.5768033, 0.551333, 0.6149614, 0.5677043)
+
+#inv is passed into the pml likelihood of a phylogenetic tree, given a tree and some other values
+#inv= proportion of invariable sites
+
 #compute likelihood
 ml_out = lapply(1:length(tree), function(i){
   pml(tree[[i]], phylo_dat[[i]], k=4, inv = inv_values[[i]])
@@ -472,6 +491,19 @@ ml_out = lapply(1:length(tree), function(i){
 #create new list of models
 #it needed the models without the "+G+I" on the end. Not sure how to get rid of that, so I made a new vector.
 model_list <- c("HKY", "HKY", "HKY", "HKY", "HKY", "HKY", "HKY", "HKY", "HKY", "GTR", "GTR", "HKY", "GTR", "HKY", "HKY")
+
+#this line drops the suffix from each of the model names
+new_list_of_models = unlist(lapply(list_of_models , function(x){unlist(strsplit(x, "\\+"))[[1]]}))
+
+#I added a line to the function above and it removes everything after the '+' in the model name
+new_list_of_models == model_list
+#note these don't match!
+#possible reasons: a.error in the model_list vectore
+#                   b. The code to generate list_of_models is picking the minimum incorrectly, Not BIC?
+#                   c. The models are conducting some permutation and the results are different each time
+#                       in this case we may need to set a random seed for the script:
+#                       setting seed: http://rfunction.com/archives/62
+
 #compute likelihood and optimize parameters
 ml_families = lapply(1:length(ml_out), function(i){
   optim.pml(ml_out[[i]], optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = model_list[[i]])

@@ -1,7 +1,3 @@
-#note I've moved the imports in this document to where I put them on my computer
-getwd()
-setwd("~/Adamowicz_lab/Majoros/Thesis-Code/Sam_Honour_Thesis_Code _Cam_suggestionsV2.R")
-
 ##pipeline for my honour's thesis
 #Centroid and alignment code adapted from Matthew Orton https://github.com/m-orton/Evolutionary-Rates-Analysis-Pipeline/blob/master/EvolutionaryComparisonPipelineSmallTaxa.R
 #Sequence trimming and outlier removal functions adapted from Jacqueline May https://github.com/jmay29/phylo/blob/master/refSeqTrim.R
@@ -43,11 +39,11 @@ library(ggtree)
 library(phytools)
 
 #Upload order data into R
-dfOrder <- read_tsv("http://www.boldsystems.org/index.php/API_Public/combined?taxon=Coleoptera&geo=Alaska|Canada&format=tsv")
+#dfOrder <- read_tsv("http://www.boldsystems.org/index.php/API_Public/combined?taxon=Coleoptera&geo=Alaska|Canada&format=tsv")
 #Write file to hard disk
-write_tsv(dfOrder, "Coleoptera_download_Oct26.tsv") #minor suggestion - I would always add a file extension
+#write_tsv(dfOrder, "Coleoptera_download_Oct26")
 #Read in order
-dfOrder <- read_tsv("../data/Coleoptera_download_Oct26.tsv")
+dfOrder <- read_tsv("Coleoptera_download_Oct26")
 
 #Filtering the data
 dfOrder <- dfOrder %>%
@@ -362,127 +358,29 @@ dnaStringSet4 <- foreach(i=1:length(alignmentFinal)) %do%
 rm(alignmentFinal, alignmentNames, alignmentSequencesPlusRef, dnaStringSet3, familyBin, alignmentref, alignmentRefNames, i, dfAllSeq2, dfOutliers, distanceMatrix, DNABin, familySequences, iqr, lowerQuantile, upperQuantile, upperThreshold, dfRefSeq, familySequenceNames)
 
 #Part 4: Create Maximum Liklihood tree----
-#create dataframes for each family
-FamilyDNA1 <- as.data.frame(dnaStringSet4[[1]])
-FamilyDNA2 <- as.data.frame(dnaStringSet4[[2]])
-FamilyDNA3 <- as.data.frame(dnaStringSet4[[3]])
-FamilyDNA4 <- as.data.frame(dnaStringSet4[[4]])
-FamilyDNA5 <- as.data.frame(dnaStringSet4[[5]])
-FamilyDNA6 <- as.data.frame(dnaStringSet4[[6]])
-FamilyDNA7 <- as.data.frame(dnaStringSet4[[7]])
-FamilyDNA8 <- as.data.frame(dnaStringSet4[[8]])
-FamilyDNA9 <- as.data.frame(dnaStringSet4[[9]])
-FamilyDNA10 <- as.data.frame(dnaStringSet4[[10]])
-FamilyDNA11 <- as.data.frame(dnaStringSet4[[11]])
-FamilyDNA12 <- as.data.frame(dnaStringSet4[[12]])
-FamilyDNA13 <- as.data.frame(dnaStringSet4[[13]])
-FamilyDNA14 <- as.data.frame(dnaStringSet4[[14]])
-FamilyDNA15 <- as.data.frame(dnaStringSet4[[15]])
-FamilyDNA16 <- as.data.frame(dnaStringSet4[[16]])
-FamilyDNA <- rbind(FamilyDNA1, FamilyDNA2, FamilyDNA3, FamilyDNA4, FamilyDNA5, FamilyDNA6, FamilyDNA7, FamilyDNA8, FamilyDNA9, FamilyDNA10, FamilyDNA11, FamilyDNA12, FamilyDNA13, FamilyDNA14, FamilyDNA15, FamilyDNA16)
 
-######################################
-#CAM 1
-#Sam says: If I have FamilyDNA as a list instead of binding the individual families together, I am unable to merge with dfAllSeq in line 389, due to differing number of rows. 
-
-#Convert each dnaStringSet into a data frame
-#currently causes issues later
-
-# looks like the output is currently a list of dataframes and you're merging it with a dataframe, 
-# all we need to do is wrap it in the rbind function to make it into a single dataframe
-# note:if this doesnt work, try rbind(unlist(lapply(...)))
-x = lapply(dnaStringSet4, as.data.frame)
-
-FamilyDNA <- rbind(lapply(dnaStringSet4, as.data.frame))
-
-length(FamilyDNA) == length(dfAllSeq[,1])
-
-
-# Cam's second suggestion after we figured out the rbind following the first solution wasn't doing what we hoped.
-# this just does the repeated block of code in a loop
-
-#Toy example I used to devise solution, stand in for the data structures:
-#omit here to line 415
-x1 = list(y= 2, z=5)
-x2 = list(y= 4, z=7)
-x3 = list(y= 6, z=9)
-x4 = list(y= 7, z=11)
-
-dnaStringSet4 = list(dat1 = x1, 
-						dat2 = x2, 
-						dat3 = x3, 
-						dat4 = x4)
-
-
+#Create function to convert DNAStringSets to dataframes
 dna_string_to_df = function(dna_string_set){
-	out_df = as.data.frame(dna_string_set[[1]])
-	for(i in 2:length(dna_string_set)){
-		new_df = as.data.frame(dna_string_set[[i]])
-		out_df = rbind(out_df, new_df)
-	}
-	return(out_df)
+  out_df = as.data.frame(dna_string_set[[1]])
+  for(i in 2:length(dna_string_set)){
+    new_df = as.data.frame(dna_string_set[[i]])
+    out_df = rbind(out_df, new_df)
+  }
+  return(out_df)
 }
-
+#convert stringsets to dataframes
 FamilyDNA = dna_string_to_df(dnaStringSet4)
-
-
-##########################################
-
 
 #Add the bin_uri
 FamilyDNA$bin_uri <- row.names(FamilyDNA)
-head(FamilyDNA)
-
 #Merge with the information for dfAllSeq
 #This step does not work with the new code. Issue with differing number of rows.
 dfFamilyDNA <- merge(FamilyDNA, dfAllSeq, by.x = "bin_uri", by.y = "bin_uri", all.x = TRUE)
 #Rename the coloumn with your aligned sequences
 colnames(dfFamilyDNA)[2] <- "FinalSequences"
 
-#remove reference sequences
-referencefind1 <- which(dfFamilyDNA$bin_uri == "reference")
-dfFamilyDNA <- dfFamilyDNA[-referencefind1, ]
-referencefind2 <- which(dfFamilyDNA$bin_uri == "reference1")
-dfFamilyDNA <- dfFamilyDNA[-referencefind2, ]
-referencefind3 <- which(dfFamilyDNA$bin_uri == "reference2")
-dfFamilyDNA <- dfFamilyDNA[-referencefind3, ]
-referencefind4 <- which(dfFamilyDNA$bin_uri == "reference3")
-dfFamilyDNA <- dfFamilyDNA[-referencefind4, ]
-referencefind5 <- which(dfFamilyDNA$bin_uri == "reference4")
-dfFamilyDNA <- dfFamilyDNA[-referencefind5, ]
-referencefind6 <- which(dfFamilyDNA$bin_uri == "reference5")
-dfFamilyDNA <- dfFamilyDNA[-referencefind6, ]
-referencefind7 <- which(dfFamilyDNA$bin_uri == "reference6")
-dfFamilyDNA <- dfFamilyDNA[-referencefind7, ]
-referencefind8 <- which(dfFamilyDNA$bin_uri == "reference7")
-dfFamilyDNA <- dfFamilyDNA[-referencefind8, ]
-referencefind9 <- which(dfFamilyDNA$bin_uri == "reference8")
-dfFamilyDNA <- dfFamilyDNA[-referencefind9, ]
-referencefind10 <- which(dfFamilyDNA$bin_uri == "reference9")
-dfFamilyDNA <- dfFamilyDNA[-referencefind10, ]
-referencefind11 <- which(dfFamilyDNA$bin_uri == "reference10")
-dfFamilyDNA <- dfFamilyDNA[-referencefind11, ]
-referencefind12 <- which(dfFamilyDNA$bin_uri == "reference11")
-dfFamilyDNA <- dfFamilyDNA[-referencefind12, ]
-referencefind13 <- which(dfFamilyDNA$bin_uri == "reference12")
-dfFamilyDNA <- dfFamilyDNA[-referencefind13, ]
-referencefind14 <- which(dfFamilyDNA$bin_uri == "reference13")
-dfFamilyDNA <- dfFamilyDNA[-referencefind14, ]
-referencefind15 <- which(dfFamilyDNA$bin_uri == "reference14")
-dfFamilyDNA <- dfFamilyDNA[-referencefind15, ]
-referencefind16 <- which(dfFamilyDNA$bin_uri == "reference15")
-dfFamilyDNA <- dfFamilyDNA[-referencefind16, ]
-
-################################
-#CAM 2
 #create function to get reference names
-#removes all references but one. One reference is only "reference" without a number. This one is left.
-
-#I went for a simple fix here, just initiated the list so it already included the string "reference" without a number.
-
 get_reference_names <- function(top_ref_num = 15){
-  # begins the list with "reference" and no number by default
-  # the highest number used in the references is passed in, default is 15
   ref_names <- c("reference")
   prefix <- "reference"
   for(i in 1:top_ref_num){
@@ -491,28 +389,7 @@ get_reference_names <- function(top_ref_num = 15){
   }
   return(ref_names)
 }
-
-#below is unnecessary here but informative:
-#if we wanted to be a little more fancy we could add an argument with default
-#then it could be applied in instances when you do need the string 'reference' and
-#also instances where you don't want it, but passing nonum = FALSE
-get_reference_names <- function(top_ref_num = 15, nonum=TRUE){
-  # begins the list with "reference" and no number by default
-  # the highest number used in the references is passed in, default is 15
-  ref_names <- c()
-  if(nonum == TRUE){
-    ref_names <- c(ref_names, "reference")
-  }
-  prefix <- "reference"
-  for(i in 1:top_ref_num){
-    new_str <- paste(prefix, as.character(i), sep='')
-    ref_names <- c(ref_names, new_str)
-  }
-  return(ref_names)
-}
-######################################3
-
-
+#create list of reference names
 reference_names = get_reference_names()
 #remove reference from dataframe
 dfFamilyDNA <- dfFamilyDNA[!dfFamilyDNA$bin_uri %in% reference_names , ]
@@ -537,21 +414,22 @@ familyFileNames <- foreach(i=1:length(familyFileNames)) %do%
 #Send to your desired working directory
 foreach(i=1:length(dnaStringSet5)) %do% writeXStringSet(dnaStringSet5[[i]], file=familyFileNames[[i]], format="fasta")
 
-#create a list of alignment files
-list_of_files <- c("AlignmentDytiscidae.fas", "AlignmentCarabidae.fas",
-                  "AlignmentCurculionidae.fas","AlignmentCoccinellidae.fas","AlignmentLeiodidae.fas",
-                  "AlignmentChrysomelidae.fas","AlignmentBuprestidae.fas","AlignmentHydrophilidae.fas",
-                  "AlignmentHaliplidae.fas", "AlignmentCantharidae.fas", "AlignmentGyrinidae.fas",
-                  "AlignmentElateridae.fas","AlignmentCryptophagidae.fas", "AlignmentScirtidae.fas",
-                  "AlignmentLatridiidae.fas")
+################################################################
 #for cam's computer only:
-#list_of_files <- c("../data/AlignmentDytiscidae.fas", "../data/AlignmentCarabidae.fas",
-#                   "../data/AlignmentCurculionidae.fas","../data/AlignmentCoccinellidae.fas","../data/AlignmentLeiodidae.fas",
-#                   "../data/AlignmentChrysomelidae.fas","../data/AlignmentBuprestidae.fas","../data/AlignmentHydrophilidae.fas",
-#                   "../data/AlignmentHaliplidae.fas", "../data/AlignmentCantharidae.fas", "../data/AlignmentGyrinidae.fas",
-#                   "../data/AlignmentElateridae.fas","../data/AlignmentCryptophagidae.fas", "../data/AlignmentScirtidae.fas",
-#                   "../data/AlignmentLatridiidae.fas")
+list_of_files <- c("../data/AlignmentDytiscidae.fas", "../data/AlignmentCarabidae.fas",
+                   "../data/AlignmentCurculionidae.fas","../data/AlignmentCoccinellidae.fas","../data/AlignmentLeiodidae.fas",
+                   "../data/AlignmentChrysomelidae.fas","../data/AlignmentBuprestidae.fas","../data/AlignmentHydrophilidae.fas",
+                   "../data/AlignmentHaliplidae.fas", "../data/AlignmentCantharidae.fas", "../data/AlignmentGyrinidae.fas",
+                   "../data/AlignmentElateridae.fas","../data/AlignmentCryptophagidae.fas", "../data/AlignmentScirtidae.fas",
+                   "../data/AlignmentLatridiidae.fas")
+###################################################################################
 
+#create a list of alignment files
+list_of_files <- c("AlignmentBuprestidae.fas", "AlignmentCantharidae.fas", "AlignmentCarabidae.fas",
+                   "AlignmentChrysomelidae.fas", "AlignmentCoccinellidae.fas", "AlignmentCryptophagidae.fas",
+                   "AlignmentCurculionidae.fas", "AlignmentDytiscidae.fas", "AlignmentElateridae.fas",
+                   "AlignmentGyrinidae.fas","AlignmentHaliplidae.fas", "AlignmentHydrophilidae.fas",
+                   "AlignmentLatridiidae.fas", "AlignmentLeiodidae.fas", "AlignmentScirtidae.fas")
 
 #read the alignments into phyDat format
 phylo_dat <- lapply(list_of_files, function(x){
@@ -578,141 +456,65 @@ env <- lapply(model_tests, function(x){
   attr(x, "env")
 })
 
-#Create list containing the best model for each family
-sam_list_of_Models <- c("HKY+G+I", "HKY+G+I", "HKY+G+I", "HKY+G+I", "HKY+G+I", "HKY+G+I", "HKY+G+I", "HKY+G+I",
-                    "GTR+G+I", "HKY+G+I", "GTR+G+I", "HKY+G+I", "HKY+G+I", "HKY+G+I", "GTR+G+I")
-
-
-##########################
-########
-# Cam's suggestion for getting this via code so you don't have to visually scan each model results df
-# I've done this off of best AIC, but you can change the column name in the function to whichever value you used
-
-#suggestion for meeting: lets extend this bit of code to cover the inv_values list made further down.
-
-#we can walk through this pattern, how I am pulling the relevant values out to save time looking at them by hand
+#create function to find best model for each family
 get_best_model = function(model_df){
-  best_model = model_df['Model'][model_df['AIC'] == min(model_df['AIC']) ]
- return(best_model)
-    
+  best_model = model_df['Model'][model_df['BIC'] == min(model_df['BIC']) ]
+  return(best_model)
 }
 
-#also note: I've maintained your variable name of list_of_Models but be aware this is a vector, not a list
-list_of_Models = unlist(lapply(model_tests, function(x){
+#create a vector containing the best models
+list_of_models = unlist(lapply(model_tests, function(x){
   get_best_model(x)
 }))
 
-#note they're not the same.... you probaby used something other than AIC
-#switch the column in the function to the one you used then use this to double check its working right
-sam_list_of_Models == list_of_Models
-##########################3
 
 #get parameters for each model
+
 model_fit <- lapply(env, function(x){
-  eval(get(list_of_Models, x),x)
+  eval(get(list_of_models, x),x)
 })
 
-#Compute likelihood
-ML_Dyt <- pml(tree1, phyDatDyt, k=4, inv= 0.4681883)
-ML_Car <- pml(tree2, phyDatCara, k=4, inv= 0.5308776)
-ML_Cur <- pml(tree3, phyDatCur, k=4, inv= 0.5482425)
-ML_Cocc <- pml(tree4, phyDatCocc, k=4, inv= 0.5581981)
-ML_Lei <- pml(tree5, phyDatLei, k=4, inv= 0.5581981)
-ML_Chry <- pml(tree6, phyDatChry, k=4, inv= 0.528835)
-ML_Bup <- pml(tree7, phyDatBup, k=4, inv= 0.5104581)
-ML_Hyd <- pml(tree8, phyDatHyd, k=4, inv= 0.5886127)
-ML_Hal <- pml(tree9, phyDatHal, k=4, inv= 0.6695774)
-ML_Can <- pml(tree10, phyDatCan, k=4, inv= 0.5145766)
-ML_Gyr <- pml(tree11, phyDatGyr, k=4, inv= 0.6361499)
-ML_Ela <- pml(tree12, phyDatEla, k=4, inv= 0.5619085)
-ML_Cryp <- pml(tree13, phyDatCryp, k=4, inv= 0.4869501)
-ML_Sci <- pml(tree14, phyDatSci, k=4, inv= 0.5677839)
-ML_Lat <- pml(tree15, phyDatLat, k=4, inv= 0.5619141)
+#create vector containing inv values
+#still cannot find inv values to make this more efficient
+# ^ can we discuss where they came from originally? want to make sure things are reproducible
+inv_values <- c(0.5371372, 0.5474856, 0.6097982, 0.5844742, 0.5159081, 0.5100146, 0.5669723, 0.5671735,
+                0.6275394, 0.6067869, 0.6513196, 0.5768033, 0.551333, 0.6149614, 0.5677043)
 
-##########################3
-#CAM 3
-#Compute likelihood
-#could not get this section to work. Pretty sure it's something with the inv values
+#inv is passed into the pml likelihood of a phylogenetic tree, given a tree and some other values
+#inv= proportion of invariable sites
 
-length(tree)
-tree[[1]]
-unlist(tree)
-       
-inv_values <- c(0.4681883, 0.5308776, 0.5482425, 0.5581981, 0.5581981, 0.528835, 0.5104581, 0.5886127,
-                0.6695774, 0.5145766, 0.6361499, 0.5619085, 0.4869501, 0.5677839, 0.5619141)
-
-
-model_tests[1]
-#to get the inv values we need can
-
-
-length(inv_values)
-length(phylo_dat)
-length(tree)
-
-pml_wrapper <- function(tree, phylo_dat, inv_values){
-  return(pml(tree, phylo_dat, k=4, inv = inv_values))
-}
-i=1
-
-ml_out_a <- mapply(pml_wrapper, tree, phylo_dat, inv_values)
-
-#I'm assuming you want a list of output so this is more proper:
+#compute likelihood
 ml_out = lapply(1:length(tree), function(i){
   pml(tree[[i]], phylo_dat[[i]], k=4, inv = inv_values[[i]])
 })
 
-##########################3
+#create new list of models
+#it needed the models without the "+G+I" on the end. Not sure how to get rid of that, so I made a new vector.
+model_list <- c("HKY", "HKY", "HKY", "HKY", "HKY", "HKY", "HKY", "HKY", "HKY", "GTR", "GTR", "HKY", "GTR", "HKY", "HKY")
 
-#Compute likelihood and optimize parameters
-#Change model based on results of model test
-ML_Dyt <- optim.pml(ML_Dyt, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "HKY")
-ML_Car <- optim.pml(ML_Car, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "HKY")
-ML_Cur <- optim.pml(ML_Cur, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "HKY")
-ML_Cocc <- optim.pml(ML_Cocc, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "HKY")
-ML_Lei <- optim.pml(ML_Lei, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "HKY")
-ML_Chry <- optim.pml(ML_Chry, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "HKY")
-ML_Bup <- optim.pml(ML_Bup, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "HKY")
-ML_Hyd <- optim.pml(ML_Hyd, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "HKY")
-ML_Hal <- optim.pml(ML_Hal, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "GTR")
-ML_Can <- optim.pml(ML_Can, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "HKY")
-ML_Gyr <- optim.pml(ML_Gyr, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "GTR")
-ML_Ela <- optim.pml(ML_Ela, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "HKY")
-ML_Cryp <- optim.pml(ML_Cryp, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "HKY")
-ML_Sci <- optim.pml(ML_Sci, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "HKY")
-ML_Lat <- optim.pml(ML_Lat, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "GTR")
+#this line drops the suffix from each of the model names
+new_list_of_models = unlist(lapply(list_of_models , function(x){unlist(strsplit(x, "\\+"))[[1]]}))
 
-#Compute Liklihood and optimize parameters
-#Untested
-#ml_out <- lapply(ml_out, function(x){
-#  optim.pml(x, optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = "HKY")
-#})
+#I added a line to the function above and it removes everything after the '+' in the model name
+new_list_of_models == model_list
+#note these don't match!
+#possible reasons: a.error in the model_list vectore
+#                   b. The code to generate list_of_models is picking the minimum incorrectly, Not BIC?
+#                   c. The models are conducting some permutation and the results are different each time
+#                       in this case we may need to set a random seed for the script:
+#                       setting seed: http://rfunction.com/archives/62
 
-#Create seperate variable for tree
-ML_Tree_Dyt <- ML_Dyt$tree
-ML_Tree_Car <- ML_Car$tree
-ML_Tree_Cur <- ML_Cur$tree
-ML_Tree_Cocc <- ML_Cocc$tree
-ML_Tree_Lei <- ML_Lei$tree
-ML_Tree_Chry <- ML_Chry$tree
-ML_Tree_Bup <- ML_Bup$tree
-ML_Tree_Hyd <- ML_Hyd$tree
-ML_Tree_Hal <- ML_Hal$tree
-ML_Tree_Can <- ML_Can$tree
-ML_Tree_Gyr <- ML_Gyr$tree
-ML_Tree_Ela <- ML_Ela$tree
-ML_Tree_Cryp <- ML_Cryp$tree
-ML_Tree_Sci <- ML_Sci$tree
-ML_Tree_Lat <- ML_Lat$tree
+#compute likelihood and optimize parameters
+ml_families = lapply(1:length(ml_out), function(i){
+  optim.pml(ml_out[[i]], optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = model_list[[i]])
+})
 
-#pull out the trees
-#untested
-#ml_trees <- lapply(ml_out, function(x){
-#  x['tree',]
-#})
+#Create seperate variable for trees
+ML_Trees <- lapply(ml_families, function(x){
+  x$tree})
 
 #Remove unneeded variables
-rm(env, tree, model_tests, model_fit, dm, binNames, familyFileNames, familyList, familySequenceNames, referencefind1, referencefind2, referencefind3, referencefind4, referencefind5, referencefind6, referencefind7, referencefind8, referencefind9, referencefind10, referencefind11, referencefind12, referencefind13, referencefind14, referencefind15, referencefind16)
+rm(env, tree, model_tests, model_fit, dm, binNames, familyFileNames, familyList, dfFamilyDNA, dnaStringSet4, dnaStringSet5, FamilyDNA, ml_families, ml_out)
 
 #Part 5: NTI and NRI----
 
@@ -756,73 +558,20 @@ Family_matrices <- lapply(Family_matrices, unclass)
 
 #Calculate net relatedness index (NRI) and nearest taxon index (NTI) using ML Tree
 #Ensure ML tree is in correct format
-phy.dist1 <- cophenetic(ML_Tree_Bup)
-phy.dist2 <- cophenetic(ML_Tree_Can)
-phy.dist3 <- cophenetic(ML_Tree_Car)
-phy.dist4 <- cophenetic(ML_Tree_Chry)
-phy.dist5 <- cophenetic(ML_Tree_Cocc)
-phy.dist6 <- cophenetic(ML_Tree_Cryp)
-phy.dist7 <- cophenetic(ML_Tree_Cur)
-phy.dist8 <- cophenetic(ML_Tree_Dyt)
-phy.dist9 <- cophenetic(ML_Tree_Ela)
-phy.dist10 <- cophenetic(ML_Tree_Gyr)
-phy.dist11 <- cophenetic(ML_Tree_Hal)
-phy.dist12 <- cophenetic(ML_Tree_Hyd)
-phy.dist13 <- cophenetic(ML_Tree_Lat)
-phy.dist14 <- cophenetic(ML_Tree_Lei)
-phy.dist15 <- cophenetic(ML_Tree_Sci)
-
-#untested
-#phy.dist <- lapply(ML_Trees, cophenetic)
+phy.dist <- lapply(ML_Trees, cophenetic)
 
 #Calculate NRI
-ses.mpd.result_ML_Bup <- ses.mpd(Family_matrix1, phy.dist1, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mpd.result_ML_Can <- ses.mpd(Family_matrix2, phy.dist2, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mpd.result_ML_Car <- ses.mpd(Family_matrix3, phy.dist3, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mpd.result_ML_Chry <- ses.mpd(Family_matrix4, phy.dist4, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mpd.result_ML_Cocc <- ses.mpd(Family_matrix5, phy.dist5, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mpd.result_ML_Cryp <- ses.mpd(Family_matrix6, phy.dist6, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mpd.result_ML_Cur <- ses.mpd(Family_matrix7, phy.dist7, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mpd.result_ML_Dyt <- ses.mpd(Family_matrix8, phy.dist8, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mpd.result_ML_Ela <- ses.mpd(Family_matrix9, phy.dist9, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mpd.result_ML_Gyr <- ses.mpd(Family_matrix10, phy.dist10, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mpd.result_ML_Hal <- ses.mpd(Family_matrix11, phy.dist11, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mpd.result_ML_Hyd <- ses.mpd(Family_matrix12, phy.dist12, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mpd.result_ML_Lat <- ses.mpd(Family_matrix13, phy.dist13, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mpd.result_ML_Lei <- ses.mpd(Family_matrix14, phy.dist14, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mpd.result_ML_Sci <- ses.mpd(Family_matrix15, phy.dist15, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-
-#Untested
-#NRI_wrapper <- function(Family_matrices, phy.dist){
-#  return(ses.mpd(Family_matrices, phy.dist, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000))
-#  }
-#NRI_Results <- mapply(NRI_wrapper, Family_matrices, phy.dist)
+NRI_Results = lapply(1:length(phy.dist), function(i){
+  ses.mpd(Family_matrices[[i]], phy.dist[[i]], null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
+})
 
 #Calculate NTI
-ses.mntd.result_ML_Bup <- ses.mntd(Family_matrix1, phy.dist1, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mntd.result_ML_Can <- ses.mntd(Family_matrix2, phy.dist2, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mntd.result_ML_Car <- ses.mntd(Family_matrix3, phy.dist3, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mntd.result_ML_Chry <- ses.mntd(Family_matrix4, phy.dist4, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mntd.result_ML_Cocc <- ses.mntd(Family_matrix5, phy.dist5, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mntd.result_ML_Cryp <- ses.mntd(Family_matrix6, phy.dist6, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mntd.result_ML_Cur <- ses.mntd(Family_matrix7, phy.dist7, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mntd.result_ML_Dyt <- ses.mntd(Family_matrix8, phy.dist8, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mntd.result_ML_Ela <- ses.mntd(Family_matrix9, phy.dist9, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mntd.result_ML_Gyr <- ses.mntd(Family_matrix10, phy.dist10, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mntd.result_ML_Hal <- ses.mntd(Family_matrix11, phy.dist11, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mntd.result_ML_Hyd <- ses.mntd(Family_matrix12, phy.dist12, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mntd.result_ML_Lat <- ses.mntd(Family_matrix13, phy.dist13, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mntd.result_ML_Lei <- ses.mntd(Family_matrix14, phy.dist14, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-ses.mntd.result_ML_Sci <- ses.mntd(Family_matrix15, phy.dist15, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
-
-#untested
-#NTI_wrapper <- function(Family_matrices, phy.dist){
-#  return(ses.mntd(Family_matrices, phy.dist, null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000))
-#}
-#NTI_Results <- mapply(NTI_wrapper, Family_matrices, phy.dist)
+NTI_Results = lapply(1:length(phy.dist), function(i){
+  ses.mntd(Family_matrices[[i]], phy.dist[[i]], null.model = "taxa.labels", abundance.weighted = FALSE, runs = 1000)
+})
 
 #Remove unneeded variables
-rm(env, Family_phyDat, fit, mt, phy.dist, dm, dfFilter_Churchill, dfFilter_NotChurchill, ChurchillFilter, NotChurchillFilter, dfAllseq2)
+rm(Family_phyDat, phy.dist, dfFilter_Churchill, dfFilter_NotChurchill, ChurchillFilter, NotChurchillFilter, dfAllSeq2, Family_matrices)
 
 #Part 6: Trait Analysis: ANOVA----
 
