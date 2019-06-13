@@ -487,15 +487,6 @@ ml_out = lapply(1:length(tree), function(i){
 #drop the suffix from each of the model names
 new_list_of_models = unlist(lapply(list_of_models , function(x){unlist(strsplit(x, "\\+"))[[1]]}))
 
-#I added a line to the function above and it removes everything after the '+' in the model name
-new_list_of_models == model_list
-#note these don't match!
-#possible reasons: a.error in the model_list vectore
-#                   b. The code to generate list_of_models is picking the minimum incorrectly, Not BIC?
-#                   c. The models are conducting some permutation and the results are different each time
-#                       in this case we may need to set a random seed for the script:
-#                       setting seed: http://rfunction.com/archives/62
-
 #compute likelihood and optimize parameters
 ml_families = lapply(1:length(ml_out), function(i){
   optim.pml(ml_out[[i]], optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = model_list[[i]])
