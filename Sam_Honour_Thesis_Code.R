@@ -1,4 +1,4 @@
-##pipeline for my honour's thesis
+#pipeline for phylogenetic community structure analysis 
 #Centroid and alignment code adapted from Matthew Orton https://github.com/m-orton/Evolutionary-Rates-Analysis-Pipeline/blob/master/EvolutionaryComparisonPipelineSmallTaxa.R
 #Sequence trimming and outlier removal functions adapted from Jacqueline May https://github.com/jmay29/phylo/blob/master/refSeqTrim.R
 
