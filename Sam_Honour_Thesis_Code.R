@@ -1,10 +1,11 @@
-#pipeline for phylogenetic community structure analysis 
+#pipeline for phylogenetic community structure analysis
 #Centroid and alignment code adapted from Matthew Orton https://github.com/m-orton/Evolutionary-Rates-Analysis-Pipeline/blob/master/EvolutionaryComparisonPipelineSmallTaxa.R
 #Sequence trimming and outlier removal functions adapted from Jacqueline May https://github.com/jmay29/phylo/blob/master/refSeqTrim.R
 
 #Part 1: Inputting and Filtering Data ----
 
-#Packages
+#Packages needed for this analysis
+#If you do not alright have these packages, uncomment the code and install.
 #install.packages("readr")
 library(readr)
 #install.packages("plyr")
@@ -33,17 +34,16 @@ library(phangorn)
 library(picante)
 #install.packages("data.table")
 library(data.table)
-#install.packages("ggtree")
-library(ggtree)
 #install.packages("phytools")
 library(phytools)
 
 #Upload order data into R
+#Uncomment the following code to download data directly from BOLD, specifiying the required geographical locations
 #dfOrder <- read_tsv("http://www.boldsystems.org/index.php/API_Public/combined?taxon=Coleoptera&geo=Alaska|Canada&format=tsv")
 #Write file to hard disk
-#write_tsv(dfOrder, "Coleoptera_download_Oct26")
-#Read in order
-dfOrder <- read_tsv("Coleoptera_download_Oct26")
+#write_tsv(dfOrder, "Coleoptera_download_June19")
+#Read in saved order data
+dfOrder <- read_tsv("Coleoptera_download_June19")
 
 #Filtering the data
 dfOrder <- dfOrder %>%
@@ -92,9 +92,13 @@ SubsetFilter_Churchill <- which(dfOrder$lat > 58.6 &
 dfOrder_Churchill <- dfOrder[SubsetFilter_Churchill, ]
 
 #Find total number of BINs per family in the regional subset of the order
+#First convert to datatable
 dfOrder_Churchill <- as.data.table(dfOrder_Churchill)
+#create datatable showing number of sequences per family
 total_species_number <- dfOrder_Churchill[ , .(.N),by=.(family_name)]
+#create datatable showing the number of bins per family
 number_of_unique_species <- dfOrder_Churchill[ , .(number_of_species=length(unique(bin_uri))), by=family_name]
+#convert to dataframe
 number_of_unique_species <- as.data.frame(number_of_unique_species)
 #Filter down to families with more than 3 or more species
 number_of_unique_species <- filter(number_of_unique_species, number_of_unique_species$number_of_species > 2)
