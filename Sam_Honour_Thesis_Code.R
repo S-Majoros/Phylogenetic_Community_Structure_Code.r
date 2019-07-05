@@ -414,6 +414,7 @@ for(i in seq(from = 1, to = length(dnaStringSet5), by = 1)) {
 #Save family as a fasta file
 #For file names make sure to list each family name
 familyFileNames <- list("Carabidae", "Curculionidae", "Dytiscidae", "Coccinellidae", "Leiodidae", "Chrysomelidae", "Staphylinidae", "Buprestidae", "Hydrophilidae", "Haliplidae", "Cantharidae", "Gyrinidae", "Elateridae", "Cryptophagidae", "Scirtidae", "Latridiidae")
+#Add alignment and .fas to each family name
 familyFileNames <- foreach(i=1:length(familyFileNames)) %do%
   paste("Alignment", familyFileNames[[i]], ".fas", sep="")
 #Send to your desired working directory
@@ -430,11 +431,13 @@ list_of_files <- c("../data/AlignmentDytiscidae.fas", "../data/AlignmentCarabida
 ###################################################################################
 
 #create a list of alignment files
+#Calling the alignments in alphabetical order allows for easier analysis during the NRI/NTI step
 list_of_files <- c("AlignmentBuprestidae.fas", "AlignmentCantharidae.fas", "AlignmentCarabidae.fas",
                    "AlignmentChrysomelidae.fas", "AlignmentCoccinellidae.fas", "AlignmentCryptophagidae.fas",
                    "AlignmentCurculionidae.fas", "AlignmentDytiscidae.fas", "AlignmentElateridae.fas",
                    "AlignmentGyrinidae.fas","AlignmentHaliplidae.fas", "AlignmentHydrophilidae.fas",
-                   "AlignmentLatridiidae.fas", "AlignmentLeiodidae.fas", "AlignmentScirtidae.fas")
+                   "AlignmentLatridiidae.fas", "AlignmentLeiodidae.fas", "AlignmentScirtidae.fas",
+                   "AlignmentStaphylinidae.fas")
 
 #read the alignments into phyDat format
 phylo_dat <- lapply(list_of_files, function(x){
