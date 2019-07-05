@@ -118,7 +118,7 @@ rm(number_of_unique_species, total_species_number, SubsetFilter_Churchill, conta
 dfBinList <- (dfOrder[, c("processid", "bin_uri", "nucleotides")])
 #Create groupings by BIN, each with different bin_uri
 binList <- lapply(unique(dfOrder$bin_uri), function(x) dfOrder[dfOrder$bin_uri==x, ])
-#Number of processids in each bin
+#Find the number of processids in each bin
 binSize <- sapply(binList, function(x)length(x$processid))
 #Create new data frame with bin_uri and bin size
 dfOrder_bins <- data.frame(binSize)
