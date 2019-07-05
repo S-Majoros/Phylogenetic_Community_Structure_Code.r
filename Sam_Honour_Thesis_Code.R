@@ -267,14 +267,14 @@ names(DNABin) <- dfAllSeq2$bin_uri
 DNABin <- as.DNAbin(DNABin)
 #Construct a distance matrix
 distanceMatrix <- dist.dna(DNABin, model="TN93", as.matrix = TRUE, pairwise.deletion = TRUE)
-#Visualizing the values in the distance matrix using a histogram
+#Visualize the values in the distance matrix using a histogram
 hist(distanceMatrix)
 
 #Using upper threshold of IQR to detect outliers
 lowerQuantile <- quantile(distanceMatrix)[2]
 upperQuantile <- quantile(distanceMatrix)[4]
 iqr <-upperQuantile - lowerQuantile
-#For now leaving as 1.5, could change to 3 for extreme outliers only
+#Set threshold to 1.5. In order to only remove exterme outliers this can be change to 3.
 upperThreshold <- (iqr*1.5) + upperQuantile
 #Remove 0 values
 distanceMatrix[distanceMatrix==0] <- NA
@@ -305,6 +305,7 @@ dfAllSeq <- RemoveSequences(dfAllSeq, dfOutliers$bin_uri)
 #Sequence was taken from BOLD and manually put in
 dfRefSeq <- data.frame(taxa=c("Coleoptera"), nucleotides=c("TAACTTTATATTTTATTTTTGGTGCATGGGCTGGAATGGTAGGAACATCTTTAAGTATGTTGATTCGAGCCGAATTAGGAAATCCTGGTTCTCTGATTGGAGATGATCAAATTTATAATGTTATTGTAACAGCACATGCTTTTGTAATAATTTTTTTCATAGTAATACCTATTATAATTGGGGGATTTGGAAATTGATTAGTTCCATTAATATTGGGGGCCCCAGATATAGCTTTTCCCCGAATAAATAATATAAGTTTTTGACTTCTTCCGCCTTCTTTAACTCTTCTATTAATAAGAAGAATAGTTGAAAGTGGGGCCGGGACAGGATGAACAGTTTACCCCCCTCTATCTTCAGGAATTGCACACGGAGGAGCTTCAGTTGATCTAGCAATTTTTAGTCTTCATTTAGCTGGAATTTCATCTATTTTAGGGGCTGTAAATTTCATTACAACTATTATTAATATACGATCAGTGGGAATAACATTCGACCGAATGCCTCTATTTGTATGATCCGTAGGAATTACAGCTTTATTACTATTATTATCTTTACCTGTATTAGCGGGAGCTATTACTATATTATTAACTGATCGTAATCTAAACACCTCATTCTTCGACCCGGCAGGAGGGGGAGATCCAATTTTATATCAACATTTATT"))
 
+#name nucleotide column and set as character
 colnames(dfRefSeq)[2] <- "nucleotides"
 dfRefSeq$nucleotides <- as.character(dfRefSeq$nucleotides)
 #Trim references to standard 620
