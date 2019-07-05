@@ -530,7 +530,7 @@ dfAllSeq2 <- dfAllSeq [, c("bin_uri", "churchill", "family_name")]
 #Split into family dataframes
 dfAllSeq2 <- split(dfAllSeq2, list(dfAllSeq$family_name))
 #Removing Staphylinidae until issue is sorted out
-dfAllSeq2[16] <- NULL
+#dfAllSeq2[16] <- NULL
 #Remove the family name column
 dfAllSeq2 <- lapply(dfAllSeq2, function(x){
   x[,-3]
