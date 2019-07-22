@@ -192,8 +192,37 @@ dfAllSeq <- Reduce(rbind, dfAllSeq)
 #Add an index column
 dfAllSeq$ind <- row.names(dfAllSeq)
 
+#This next section deals with the issues Staphylinidae creates as a large dataset. If families are smaller in size they do not need to be split into subfamilies.
+#Create dataframe with only Staphylinidae. It is too large to be included with the other families and needs to be run seperately after being broken down to subfamilies.
+Staph <- filter(dfAllSeq, dfAllSeq$family_name == "Staphylinidae")
+#Remove Staph from dfAllSeq
+dfAllSeq <- filter(dfAllSeq, !(dfAllSeq$family_name == "Staphylinidae"))
+#Filter out families with subfamily name from Staph
+Staph <- filter(Staph, !is.na(subfamily_name))
+#will also need to remove subfamilies with less than 3 species. If we don't, the analysis will not work.
+#First convert to datatable
+Staph <- as.data.table(Staph)
+#create datatable showing number of sequences per subfamily
+total_species_number <- Staph[ , .(.N),by=.(subfamily_name)]
+#create datatable showing the number of bins per subfamily
+number_of_unique_species <- Staph[ , .(number_of_species=length(unique(bin_uri))), by=subfamily_name]
+#convert to dataframe
+number_of_unique_species <- as.data.frame(number_of_unique_species)
+#Filter down to subfamilies with more than 3 or more species
+number_of_unique_species <- filter(number_of_unique_species, number_of_unique_species$number_of_species > 2)
+#Create filter to filter down the family to subfamilies with three or more species
+Staph_filter <- which(Staph$subfamily_name %in% number_of_unique_species$subfamily_name)
+#convert back to dataframe
+Staph <- as.data.frame(Staph)
+#Apply filter
+Staph <- Staph[Staph_filter, ]
+#Filter down to only include subfamilies that appear in Churchill
+ChurchillFilter <- which(Staph$subfamily_name %in% dfOrder_Churchill$subfamily_name)
+Staph <- Staph[ChurchillFilter, ]
+#This dataset with Staph will go through the same analysis as the rest of the order, just separately.
+
 #Remove unneeded dataframes and variables
-rm(alignment1, binList, dfBinList, dfCentroid, dfOrder_bins, dfNonCentroid, dnaBINCentroid, dnaStringSet1, geneticDistanceCentroid, largeBinList, largeBinProcessid, binNumberCentroid, binSize,  centroidSeq, i, largeBin)
+rm(alignment1, binList, dfBinList, dfCentroid, dfOrder_bins, dfNonCentroid, dnaBINCentroid, dnaStringSet1, geneticDistanceCentroid, largeBinList, largeBinProcessid, binNumberCentroid, binSize,  centroidSeq, i, largeBin, Staph, NotStaph)
 
 #Part 3: Alignment----
 
@@ -340,7 +369,7 @@ dnaStringSet3 <- foreach(i=1:length(alignmentSequencesPlusRef)) %do%
   DNAStringSet(alignmentSequencesPlusRef[[i]])
 
   #Name each sequence
-  for(i in 1:16){
+  for(i in 1:15){
     names(dnaStringSet3[[i]]) = alignmentNames[[i]]
   }
 
@@ -413,7 +442,7 @@ for(i in seq(from = 1, to = length(dnaStringSet5), by = 1)) {
 
 #Save family as a fasta file
 #For file names make sure to list each family name
-familyFileNames <- list("Carabidae", "Curculionidae", "Dytiscidae", "Coccinellidae", "Leiodidae", "Chrysomelidae", "Staphylinidae", "Buprestidae", "Hydrophilidae", "Haliplidae", "Cantharidae", "Gyrinidae", "Elateridae", "Cryptophagidae", "Scirtidae", "Latridiidae")
+familyFileNames <- list("Carabidae", "Curculionidae", "Dytiscidae", "Coccinellidae", "Leiodidae", "Chrysomelidae", "Buprestidae", "Hydrophilidae", "Haliplidae", "Cantharidae", "Gyrinidae", "Elateridae", "Cryptophagidae", "Scirtidae", "Latridiidae")
 #Add alignment and .fas to each family name
 familyFileNames <- foreach(i=1:length(familyFileNames)) %do%
   paste("Alignment", familyFileNames[[i]], ".fas", sep="")
@@ -436,8 +465,7 @@ list_of_files <- c("AlignmentBuprestidae.fas", "AlignmentCantharidae.fas", "Alig
                    "AlignmentChrysomelidae.fas", "AlignmentCoccinellidae.fas", "AlignmentCryptophagidae.fas",
                    "AlignmentCurculionidae.fas", "AlignmentDytiscidae.fas", "AlignmentElateridae.fas",
                    "AlignmentGyrinidae.fas","AlignmentHaliplidae.fas", "AlignmentHydrophilidae.fas",
-                   "AlignmentLatridiidae.fas", "AlignmentLeiodidae.fas", "AlignmentScirtidae.fas",
-                   "AlignmentStaphylinidae.fas")
+                   "AlignmentLatridiidae.fas", "AlignmentLeiodidae.fas", "AlignmentScirtidae.fas")
 
 #read the alignments into phyDat format
 phylo_dat <- lapply(list_of_files, function(x){
@@ -529,8 +557,6 @@ dfAllSeq <- rbind(dfFilter_Churchill, dfFilter_NotChurchill)
 dfAllSeq2 <- dfAllSeq [, c("bin_uri", "churchill", "family_name")]
 #Split into family dataframes
 dfAllSeq2 <- split(dfAllSeq2, list(dfAllSeq$family_name))
-#Removing Staphylinidae until issue is sorted out
-#dfAllSeq2[16] <- NULL
 #Remove the family name column
 dfAllSeq2 <- lapply(dfAllSeq2, function(x){
   x[,-3]
