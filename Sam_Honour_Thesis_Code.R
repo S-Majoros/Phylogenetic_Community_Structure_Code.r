@@ -449,9 +449,9 @@ dm <- lapply(phylo_dat, function(x){
   dist.ml(x)
 })
 
-#Create a tree for each family
+#creating NJ tree
 tree <- lapply(dm, function(x){
-  fastme.bal(x)
+  NJ(x)
 })
 
 #run model tests
