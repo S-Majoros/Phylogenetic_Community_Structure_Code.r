@@ -497,7 +497,7 @@ new_list_of_models = unlist(lapply(list_of_models , function(x){unlist(strsplit(
 
 #compute likelihood and optimize parameters
 ml_families = lapply(1:length(ml_out), function(i){
-  optim.pml(ml_out[[i]], optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = model_list[[i]])
+  optim.pml(ml_out[[i]], optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = new_list_of_models[[i]])
 })
 
 #Create seperate variable for trees
