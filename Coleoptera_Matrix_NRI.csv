@@ -1,0 +1,17 @@
+family_name,structure,habitat,adult_diet
+Coccinellidae,-0.19,terrestrial ,predator
+Latridiidae,-0.74,terrestrial ,scavenger
+Curculionidae,0.21,terrestrial ,herbivore
+Cryptophagidae,1.38,terrestrial ,herbivore
+Chrysomelidae,-0.72,terrestrial ,herbivore
+Scirtidae,1.03,aquatic ,herbivore
+Leiodidae,0.68,terrestrial ,scavenger
+Hydrophilidae,1.14,aquatic ,scavenger
+Buprestidae,2.02,terrestrial ,scavenger
+Elateridae,0.39,terrestrial ,herbivore
+Cantharidae,2.78,terrestrial ,predator
+Carabidae,1.94,terrestrial ,predator
+Haliplidae,2.17,aquatic ,herbivore
+Gyrinidae,2,aquatic ,predator
+Dytiscidae,1.34,aquatic ,predator
+Staphylinidae,0.61,terrestrial ,predator
