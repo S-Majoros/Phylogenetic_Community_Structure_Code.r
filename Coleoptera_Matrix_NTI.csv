@@ -1,17 +1,17 @@
 family_name,structure,habitat,adult_diet
-Dytiscidae,1.52,aquatic ,predator
-Carabidae,2.29,terrestrial ,predator
-Curculionidae,0.19,terrestrial ,herbivore
-Leiodidae,0.25,terrestrial ,scavenger
-Chrysomelidae,-0.47,terrestrial ,herbivore
-Coccinellidae,-0.62,terrestrial ,predator
-Elateridae,0.08,terrestrial ,herbivore
-Hydrophilidae,2.7,aquatic ,scavenger
-Buprestidae,2.2,terrestrial ,scavenger
-Cantharidae,2.52,terrestrial ,predator
-Cryptophagidae,1.88,terrestrial ,herbivore
-Gyrinidae,1.17,aquatic ,predator
-Haliplidae,0.99,aquatic ,herbivore
-Latridiidae,-0.89,terrestrial ,scavenger
-Scirtidae,0.67,aquatic ,herbivore
-Staphylinidae,2.48,terrestrial ,predator
+Dytiscidae,1.52,aquatic,predator
+Carabidae,2.29,terrestrial,predator
+Curculionidae,0.19,terrestrial,herbivore
+Leiodidae,0.25,terrestrial,scavenger
+Chrysomelidae,-0.47,terrestrial,herbivore
+Coccinellidae,-0.62,terrestrial,predator
+Elateridae,0.08,terrestrial,herbivore
+Hydrophilidae,2.7,aquatic,scavenger
+Buprestidae,2.2,terrestrial,scavenger
+Cantharidae,2.52,terrestrial,predator
+Cryptophagidae,1.88,terrestrial,herbivore
+Gyrinidae,1.17,aquatic,predator
+Haliplidae,0.99,aquatic,herbivore
+Latridiidae,-0.89,terrestrial,scavenger
+Scirtidae,0.67,aquatic,herbivore
+Staphylinidae,2.48,terrestrial,predator
