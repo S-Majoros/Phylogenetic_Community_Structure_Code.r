@@ -560,7 +560,7 @@ NTI_Results = lapply(1:length(phy.dist), function(i){
 })
 
 #Remove unneeded variables
-rm(Family_phyDat, phy.dist, dfFilter_Churchill, dfFilter_NotChurchill, ChurchillFilter, NotChurchillFilter, dfAllSeq2, Family_matrices)
+rm(phy.dist, dfFilter_Churchill, dfFilter_NotChurchill, ChurchillFilter, NotChurchillFilter, dfAllSeq2, Family_matrices)
 
 #Part 6: Trait Analysis: ANOVA----
 
@@ -621,3 +621,4 @@ pglsModel_NTI2 <- gls(structure ~ adult_diet, correlation = corBrownian(phy = PG
 #Get PGLS summary
 summary(pglsModel_NTI1)
 summary(pglsModel_NTI2)
+
