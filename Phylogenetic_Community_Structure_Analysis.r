@@ -38,7 +38,7 @@ library(data.table)
 library(phytools)
 
 #Upload order data into R
-#Uncomment the following code to download data directly from BOLD, specifiying the required geographical locations
+#Uncomment the following code to download data directly from BOLD, specifying the required geographical locations
 #dfOrder <- read_tsv("http://www.boldsystems.org/index.php/API_Public/combined?taxon=Coleoptera&geo=Alaska|Canada&format=tsv")
 #Write file to hard disk
 #write_tsv(dfOrder, "Coleoptera_download_June19")
@@ -108,7 +108,7 @@ dfOrder_filter <- which(dfOrder$family_name %in% number_of_unique_species$family
 #Apply filter
 dfOrder <- dfOrder[dfOrder_filter, ]
 
-#Remove uneeded variables
+#Remove unneeded variables
 rm(number_of_unique_species, total_species_number, SubsetFilter_Churchill, containLatLon, endNGap, internalNGap, nGapCheck, split, startNGap, dfOrder_filter, i)
 
 #Part 2: Choosing a Centroid----
@@ -229,7 +229,7 @@ RefSeqTrim <- function(x) {
   alignmentUntrimmed <- DNAStringSet(alignment2)
   writeXStringSet(alignmentUntrimmed, file=classFileNames[[1]],
                   format = "fasta", width=1500)
-  #Find stop and start postions in reference
+  #Find stop and start positions in reference
   refSeqPos <- which(alignment2@unmasked@ranges@NAMES=="Reference")
   refSeqPos <- alignment2@unmasked[refSeqPos]
   refSeqPosStart <- regexpr("[ACTG]", refSeqPos)
@@ -274,7 +274,7 @@ hist(distanceMatrix)
 lowerQuantile <- quantile(distanceMatrix)[2]
 upperQuantile <- quantile(distanceMatrix)[4]
 iqr <-upperQuantile - lowerQuantile
-#Set threshold to 1.5. In order to only remove exterme outliers this can be change to 3.
+#Set threshold to 1.5. In order to only remove extreme outliers this can be change to 3.
 upperThreshold <- (iqr*1.5) + upperQuantile
 #Remove 0 values
 distanceMatrix[distanceMatrix==0] <- NA
@@ -362,7 +362,7 @@ dnaStringSet4 <- foreach(i=1:length(alignmentFinal)) %do%
 #Remove unneeded info
 rm(alignmentFinal, alignmentNames, alignmentSequencesPlusRef, dnaStringSet3, familyBin, alignmentref, alignmentRefNames, i, dfAllSeq2, dfOutliers, distanceMatrix, DNABin, familySequences, iqr, lowerQuantile, upperQuantile, upperThreshold, dfRefSeq, familySequenceNames)
 
-#Part 4: Create Maximum Liklihood tree----
+#Part 4: Create Maximum Likelihood tree----
 
 #Create function to convert DNAStringSets to dataframes
 dna_string_to_df = function(dna_string_set){
@@ -381,7 +381,7 @@ FamilyDNA$bin_uri <- row.names(FamilyDNA)
 #Merge with the information for dfAllSeq
 #This step does not work with the new code. Issue with differing number of rows.
 dfFamilyDNA <- merge(FamilyDNA, dfAllSeq, by.x = "bin_uri", by.y = "bin_uri", all.x = TRUE)
-#Rename the coloumn with your aligned sequences
+#Rename the column with your aligned sequences
 colnames(dfFamilyDNA)[2] <- "FinalSequences"
 
 #create function to get reference names
@@ -404,7 +404,7 @@ familyList <- lapply(unique(dfFamilyDNA$family_name),
                      function(x) dfFamilyDNA[dfFamilyDNA$family_name == x, ])
 #Create new dnaStringSet
 dnaStringSet5 <- sapply(familyList, function(x) DNAStringSet(x$FinalSequences))
-#Pull bin names from list
+#Pull BIN names from list
 binNames <- sapply(familyList, function(x)(x$bin_uri))
 #Name the stringsets
 for(i in seq(from = 1, to = length(dnaStringSet5), by = 1)) {
@@ -419,16 +419,6 @@ familyFileNames <- foreach(i=1:length(familyFileNames)) %do%
   paste("Alignment", familyFileNames[[i]], ".fas", sep="")
 #Send to your desired working directory
 foreach(i=1:length(dnaStringSet5)) %do% writeXStringSet(dnaStringSet5[[i]], file=familyFileNames[[i]], format="fasta")
-
-################################################################
-#for cam's computer only:
-list_of_files <- c("../data/AlignmentDytiscidae.fas", "../data/AlignmentCarabidae.fas",
-                   "../data/AlignmentCurculionidae.fas","../data/AlignmentCoccinellidae.fas","../data/AlignmentLeiodidae.fas",
-                   "../data/AlignmentChrysomelidae.fas","../data/AlignmentBuprestidae.fas","../data/AlignmentHydrophilidae.fas",
-                   "../data/AlignmentHaliplidae.fas", "../data/AlignmentCantharidae.fas", "../data/AlignmentGyrinidae.fas",
-                   "../data/AlignmentElateridae.fas","../data/AlignmentCryptophagidae.fas", "../data/AlignmentScirtidae.fas",
-                   "../data/AlignmentLatridiidae.fas")
-###################################################################################
 
 #create a list of alignment files
 #Calling the alignments in alphabetical order allows for easier analysis during the NRI/NTI step
@@ -500,7 +490,7 @@ ml_families = lapply(1:length(ml_out), function(i){
   optim.pml(ml_out[[i]], optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = new_list_of_models[[i]])
 })
 
-#Create seperate variable for trees
+#Create separate variable for trees
 ML_Trees <- lapply(ml_families, function(x){
   x$tree})
 
