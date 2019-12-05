@@ -5,7 +5,7 @@
 #Part 1: Inputting and Filtering Data ----
 
 #Packages needed for this analysis
-#If you do not alright have these packages, uncomment the code and install.
+#If you do not already have these packages, uncomment the code and install.
 #install.packages("readr")
 library(readr)
 #install.packages("plyr")
@@ -96,7 +96,7 @@ dfOrder_Churchill <- dfOrder[SubsetFilter_Churchill, ]
 dfOrder_Churchill <- as.data.table(dfOrder_Churchill)
 #create datatable showing number of sequences per family
 total_species_number <- dfOrder_Churchill[ , .(.N),by=.(family_name)]
-#create datatable showing the number of bins per family
+#create datatable showing the number of BINs per family
 number_of_unique_species <- dfOrder_Churchill[ , .(number_of_species=length(unique(bin_uri))), by=family_name]
 #convert to dataframe
 number_of_unique_species <- as.data.frame(number_of_unique_species)
@@ -128,21 +128,21 @@ dfBinList <- merge(dfBinList, dfOrder_bins, by.x="bin_uri", by.y="bin_uri")
 #Reorder dfFamily_bins by bin_uri
 dfOrder_bins <- dfOrder_bins[order(dfOrder_bins$bin_uri), ]
 
-#Find bins with more than one member
+#Find BINs with more than one member
 largeBin <- which(dfBinList$binSize > 1)
 #Create dataframe with only bins with more than one member
 if (length(largeBin) > 0) {
   dfCentroid <- dfBinList[largeBin, ]
 }
 
-#Subset dfOrder_bins down to number of bins in dfOrder
+#Subset dfOrder_bins down to number of BINs in dfOrder
 dfOrder_bins <- subset(dfOrder_bins, dfOrder_bins$bin_uri %in% dfCentroid$bin_uri)
 
-#Find number of unique bins in dfCentroid
+#Find number of unique BINs in dfCentroid
 binNumberCentroid <- unique(dfCentroid$bin_uri)
 binNumberCentroid <- length(binNumberCentroid)
 
-#Create dataframe with bins with only one sequence
+#Create dataframe with BINs with only one sequence
 dfNonCentroid <- dfBinList[-largeBin, ]
 
 #Create list from dfCentroid
@@ -282,7 +282,7 @@ distanceMatrix[distanceMatrix==0] <- NA
 dfOutliers <- as.data.table(distanceMatrix, keep.rownames = T)
 #Change the "rn" column to bin_uri
 setnames(dfOutliers, "rn", "bin_uri")
-#Identify divergent bins
+#Identify divergent BINs
 dfOutliers <- dfOutliers[, outlier := apply(.SD, 1, function(x)all(x>upperThreshold, na.rm=T))][outlier==TRUE]
 
 #Create remove sequences function
