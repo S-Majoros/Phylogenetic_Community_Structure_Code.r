@@ -576,7 +576,7 @@ summary(Coleoptera_ANOVA_NTI_Feeding)
 #Read in matrix
 PGLSdata_NRI <- read.csv("Coleoptera_Matrix_NRI.csv")
 #Read in tree
-PGLStree <- read.nexus("PGLS_tree_Coleoptera")
+PGLStree <- read.nexus("Coleoptera Tree 2020")
 #Set branch lengths to one
 PGLStree$edge.length <- replicate((length(PGLStree$edge[, 1])), 1)
 PGGLStree <- force.ultrametric(PGLStree, method="extend")
