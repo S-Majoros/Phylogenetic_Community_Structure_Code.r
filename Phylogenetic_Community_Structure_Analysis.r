@@ -315,9 +315,57 @@ dfAllSeq <- subset(dfAllSeq, dfAllSeq$order_name %in% dfRefSeq$taxa)
 #Break down dataframe into families
 taxalistcomplete <- lapply(unique(dfAllSeq$family_taxID), function(x) dfAllSeq[dfAllSeq$family_taxID==x, ])
 
+#Create new dataframes that sort families by suborder
+dfAdephaga <- rbind(taxalistcomplete[[1]], taxalistcomplete[[3]], taxalistcomplete[[10]], taxalistcomplete[[12]])
+
+dfPolyphaga <- rbind(taxalistcomplete[[2]], taxalistcomplete[[4]], taxalistcomplete[[5]], taxalistcomplete[[6]], taxalistcomplete[[7]],taxalistcomplete[[8]],taxalistcomplete[[9]],taxalistcomplete[[11]],taxalistcomplete[[13]],taxalistcomplete[[14]],taxalistcomplete[[15]],taxalistcomplete[[16]])
+
+#Randomly select outgroup sequences
+dfAdephaga_Outgroup <- sample_n(dfAdephaga, 3)
+dfPolyphaga_outgroup <- sample_n(dfPolyphaga, 3)    
+                           
+#Put outgroup dataframes into a list
+Suborders <- list(dfPolyphaga_outgroup, dfAdephaga_Outgroup)                  
+
+dataframeNums <- c(1, 2, 1, 2, 2, 2, 2, 2, 2, 1, 2, 1, 2, 2, 2, 2)
+#Creating a vector of the outgroup names.
+outgroupNames <- c("Outgroup_Car", "Outgroup_Cur", "Outgroup_Dyt", "Outgroup_Cocc", "Outgroup_Lei", "Outgroup_Chry", "Outgroup_Staph", "Outgroup_Bup", "Outgroup_Hydro", "Outgroup_Hal", "Outgroup_Can", "Outgroup_Gyr", "Outgroup_Ela", "Outgroup_Crypt", "Outgroup_Scirt", "Outgroup_Lat")
+
+ l_outgroups <- list()
+
+#Use a for loop to sample the sequences from taxalistcomplete.
+for (i in 1:length(dataframeNums)) {
+#Take the ith dataframe number.
+  number <- dataframeNums[[i]]
+#Sample from the corresponding dataframe in taxalistcomplete.
+ outgroupSeqs <- Suborders[[number]]
+#Append outgroupSeqs to the list we created earlier.
+l_outgroups[[i]] <- outgroupSeqs
+
+}
+names(l_outgroups) <- outgroupNames
+
+taxalistcompleteWO <- list()
+#Now let's add the outgroup sequences to the corresponding dataframes taxalistcomplete.
+for (i in 1:length(taxalistcomplete)) {
+  
+  #Take the ith outgroupseqs.
+  outgroupSeqs <- l_outgroups[[i]]
+  #Take the ith taxa from taxalistcomplete.
+  taxa <- taxalistcomplete[[i]]
+  #Combine them using rbind
+  dfCombined <- rbind(taxa, outgroupSeqs)
+  #Append to our list.
+  taxalistcompleteWO[[i]] <- dfCombined
+  
+}                          
+      
+#Trim sequences again now that outgroups have been added
+taxalistcompleteWO <- lapply(taxalistcompleteWO, RefSeqTrim)                         
+
 #Extract sequences and bin_uri
-familyBin <- foreach(i=1:length(taxalistcomplete)) %do% taxalistcomplete[[i]]$bin_uri
-familySequences <- foreach(i=1:length(taxalistcomplete)) %do% taxalistcomplete[[i]]$nucleotides
+familyBin <- foreach(i=1:length(taxalistcompleteWO)) %do% taxalistcompleteWO[[i]]$bin_uri
+familySequences <- foreach(i=1:length(taxalistcompleteWO)) %do% taxalistcompleteWO[[i]]$nucleotides
 familySequenceNames <- familyBin
 
 #Take reference sequences
@@ -326,11 +374,11 @@ dfRefSeq$reference <- "reference"
 #Name reference as a reference
 alignmentRefNames <- dfRefSeq$reference
 #Merge reference with other sequences
-alignmentSequencesPlusRef <- foreach(i=1:length(taxalistcomplete)) %do%
+alignmentSequencesPlusRef <- foreach(i=1:length(taxalistcompleteWO)) %do%
   append(familySequences[[i]], alignmentref[[1]])
 
 #Merge names together
-alignmentNames <- foreach(i=1:length(taxalistcomplete)) %do%
+alignmentNames <- foreach(i=1:length(taxalistcompleteWO)) %do%
   append(familySequenceNames[[i]], alignmentRefNames[[1]])
 
 #Convert sequences to DNAStringSet format
@@ -373,12 +421,17 @@ dna_string_to_df = function(dna_string_set){
 }
 #convert stringsets to dataframes
 FamilyDNA = dna_string_to_df(dnaStringSet4)
-
+                           
 #Add the bin_uri
 FamilyDNA$bin_uri <- row.names(FamilyDNA)
-#Merge with the information for dfAllSeq
-#This step does not work with the new code. Issue with differing number of rows.
-dfFamilyDNA <- merge(FamilyDNA, dfAllSeq, by.x = "bin_uri", by.y = "bin_uri", all.x = TRUE)
+#Bind list of dataframes into one dataframe
+dfTaxaWO <- bind_rows(taxalistcompleteWO, .id = "column_label")
+# Add column_label info to dfAllSeq.
+dfAllSeqWO <- merge(dfAllSeq, dfTaxaWO[, c(1:2)], by = "bin_uri", all.y = T)
+# Merge with the information for dfAllSeqWO.
+dfFamilyDNA <- merge(FamilyDNA, dfAllSeqWO, by = "bin_uri",  all.x = TRUE)
+#Rename the coloumn with your aligned sequences
+colnames(dfFamilyDNA)[2] <- "FinalSequences"
 #Rename the column with your aligned sequences
 colnames(dfFamilyDNA)[2] <- "FinalSequences"
 
@@ -397,9 +450,43 @@ reference_names = get_reference_names()
 #remove reference from dataframe
 dfFamilyDNA <- dfFamilyDNA[!dfFamilyDNA$bin_uri %in% reference_names , ]
 
-#Pull names from dataframe
-familyList <- lapply(unique(dfFamilyDNA$family_name),
-                     function(x) dfFamilyDNA[dfFamilyDNA$family_name == x, ])
+#Groups by column label
+familyList <- lapply(na.omit(unique(dfFamilyDNA$column_label)), 
+                     function(x) dfFamilyDNA[dfFamilyDNA$column_label == x, ])                           
+
+ #Create function to remove NAs                        
+ RemoveAllNAs <- function(dfOriginal) {
+  
+ #Function for removing rows that consist of entirely NA values.
+
+ #Reset the row numbers.
+  row.names(dfOriginal) <- NULL
+  # First check if there are any rows with all values missing.
+  test <- apply(dfOriginal, 1, function(x) all(is.na(x)))
+  
+  if (any(test) == TRUE) {
+    
+    #Identify the missing rows.
+    missing <- which(test == TRUE)
+    #Remove them from dfOriginal.
+    dfOriginal <- dfOriginal[-missing, ]
+    
+  } 
+  
+  return(dfOriginal)
+  
+}
+
+#Cleaning up familyList.
+familyList <- lapply(familyList, RemoveAllNAs)
+                
+familyList <- lapply(familyList, function(x) {
+  
+  noBin <- is.na(x$bin_uri)
+  x <- x[!noBin, ]
+  
+})               
+                           
 #Create new dnaStringSet
 dnaStringSet5 <- sapply(familyList, function(x) DNAStringSet(x$FinalSequences))
 #Pull BIN names from list
@@ -488,9 +575,31 @@ ml_families = lapply(1:length(ml_out), function(i){
   optim.pml(ml_out[[i]], optNni = TRUE, optGamma = TRUE, optInv = TRUE, model = new_list_of_models[[i]])
 })
 
-#Create separate variable for trees
-ML_Trees <- lapply(ml_families, function(x){
-  x$tree})
+#Do a bootstrap analysis for each family
+bs <- lapply(1:length(ml_families), function(i){
+  bootstrap.pml(ml_families[[i]], bs=1000, optNni=TRUE, multicore = FALSE)
+})
+
+#Create a consensus bootstrap tree for each family
+#par(mfrow=c(2,1))
+#par(mar=c(1,1,3,1))
+bsTree <- lapply(1:length(bs), function(i){
+  plotBS(midpoint(ml_families[[i]]$tree), bs[[i]], type = "p")
+})
+
+#Reorder outgroup dataframe list so it is in the same order as the trees
+l_outgroups <- l_outgroups[order(names(l_outgroups))]
+
+#Root the trees using the outgroups
+Tree_Rooted <- lapply(1:length(bsTree), function(i){
+  root(bsTree[[3]], outgroup = l_outgroups[[3]]$bin_uri, resolve.root = TRUE)
+})
+
+#Remove the outgroup
+Tree_Final <- lapply(1:length(Tree_Rooted), function(i){
+  drop.tip(Tree_Rooted[[i]], l_outgroups[[i]]$bin_uri)
+})
+
 
 #Remove unneeded variables
 rm(env, tree, model_tests, model_fit, dm, binNames, familyFileNames, familyList, dfFamilyDNA, dnaStringSet4, dnaStringSet5, FamilyDNA, ml_families, ml_out)
