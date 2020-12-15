@@ -662,23 +662,27 @@ rm(phy.dist, dfFilter_Churchill, dfFilter_NotChurchill, ChurchillFilter, NotChur
 #Part 6: Trait Analysis: ANOVA----
 
 #Read in character matrix
-Coleoptera_Matrix_NRI <- read_csv(file="Coleoptera_Matrix_NRI.csv")
-#Run ANOVAs for both traits
-Coleoptera_ANOVA_NRI_Feeding <- aov(structure ~ adult_diet, data = Coleoptera_Matrix_NRI)
+Coleoptera_Matrix_NRI <- read_csv(file="C:/Users/Sam/Documents/Coleoptera_Matrix_NRI.csv")
+#Run ANOVAs for all traits 
+Coleoptera_ANOVA_NRI_Feeding_Adult <- aov(structure ~ adult_diet, data = Coleoptera_Matrix_NRI)
+Coleoptera_ANOVA_NRI_Feeding_Larval <- aov(structure ~ larval_diet, data = Coleoptera_Matrix_NRI)
 Coleoptera_ANOVA_NRI_Habitat <- aov(structure ~ habitat, data = Coleoptera_Matrix_NRI)
-#Get ANOVA summary
+#Get ANOVA summary 
 summary(Coleoptera_ANOVA_NRI_Habitat)
-summary(Coleoptera_ANOVA_NRI_Feeding)
+summary(Coleoptera_ANOVA_NRI_Feeding_Adult)
+summary(Coleoptera_ANOVA_NRI_Feeding_Larval)
 
 #Repeat for NTI values
 #Read in matrix
-Coleoptera_Matrix_NTI <- read.csv(file="Coleoptera_Matrix_NTI.csv")
-#Run ANOVAs for both traits
+Coleoptera_Matrix_NTI <- read.csv(file="C:/Users/Sam/Documents/Coleoptera_Matrix_NTI.csv")
+#Run ANOVAs for both traits 
 Coleoptera_ANOVA_NTI_Habitat <- aov(structure ~ habitat, data = Coleoptera_Matrix_NTI)
-Coleoptera_ANOVA_NTI_Feeding <- aov(structure ~ adult_diet, data = Coleoptera_Matrix_NTI)
-#Get ANOVA summary
+Coleoptera_ANOVA_NTI_Feeding_Adult <- aov(structure ~ adult_diet, data = Coleoptera_Matrix_NTI)
+Coleoptera_ANOVA_NTI_Feeding_Larval <- aov(structure ~ larval_diet, data = Coleoptera_Matrix_NTI)
+#Get ANOVA summary 
 summary(Coleoptera_ANOVA_NTI_Habitat)
-summary(Coleoptera_ANOVA_NTI_Feeding)
+summary(Coleoptera_ANOVA_NTI_Feeding_Adult)
+summary(Coleoptera_ANOVA_NTI_Feeding_Larval)
 
 #Part 7: Trait Analysis: PGLS----
 
@@ -688,34 +692,44 @@ PGLSdata_NRI <- read.csv("Coleoptera_Matrix_NRI.csv")
 PGLStree <- read.nexus("Coleoptera Tree 2020")
 #Set branch lengths to one
 PGLStree$edge.length <- replicate((length(PGLStree$edge[, 1])), 1)
-PGGLStree <- force.ultrametric(PGLStree, method="extend")
-#Set the row names to family names
+PGLStree <- force.ultrametric(PGLStree, method="extend")
+#Set the row names to family names 
 PGLSdata_NRI <- PGLSdata_NRI %>%
   column_to_rownames(var = 'family_name')
 #Make sure tree and dataframe are in the same order
 PGLSdata_NRI <- PGLSdata_NRI[match(PGLStree$tip.label, rownames(PGLSdata_NRI)), ]
-#Run PGLS analysis
-pglsModel_NRI1 <- gls(structure ~ habitat, correlation = corBrownian(phy = PGLStree), data = PGLSdata_NRI, method = "ML")
-pglsModel_NRI2 <- gls(structure ~ adult_diet, correlation = corBrownian(phy = PGLStree), data = PGLSdata_NRI, method = "ML")
-#Get PGLS summary
-summary(pglsModel_NRI1)
-summary(pglsModel_NRI2)
+#Run PGLS analysis 
+pglsModel_NRI_Habitat <- gls(structure ~ habitat, correlation = corBrownian(phy = PGLStree), data = PGLSdata_NRI, method = "ML")
+pglsModel_NRI_Adult_Diet <- gls(structure ~ adult_diet, correlation = corBrownian(phy = PGLStree), data = PGLSdata_NRI, method = "ML")
+pglsModel_NRI_Larval_Diet <- gls(structure ~ larval_diet, correlation = corBrownian(phy = PGLStree), data = PGLSdata_NRI, method = "ML")
+#Get PGLS summary 
+summary(pglsModel_NRI_Habitat)
+summary(pglsModel_NRI_Adult_Diet)
+summary(pglsModel_NRI_Larval_Diet)
 
 #Create boxplots for traits vs. clustering matrix
-plot1 <- boxplot(PGLSdata_NRI$structure ~ PGLSdata_NRI$habitat )
-plot2 <- boxplot(PGLSdata_NRI$structure ~ PGLSdata_NRI$adult_diet )
+plot_Habitat_NRI <- boxplot(PGLSdata_NRI$structure ~ PGLSdata_NRI$habitat)
+plot_Adult_Diet_NRI <- boxplot(PGLSdata_NRI$structure ~ PGLSdata_NRI$adult_diet)
+plot_Larval_Diet_NRI <- boxplot(PGLSdata_NRI$structure ~ PGLSdata_NRI$larval_diet)
 
 #Repeat for NTI
 PGLSdata_NTI <- read.csv("Coleoptera_Matrix_NTI.csv")
-#Set row names to family names
+#Set row names to family names 
 PGLSdata_NTI <- PGLSdata_NTI %>%
   column_to_rownames(var = 'family_name')
 #Make sure tree and dataframe are in the same order
 PGLSdata_NTI <- PGLSdata_NTI[match(PGLStree$tip.label, rownames(PGLSdata_NTI)), ]
-#Run PGLS analysis
-pglsModel_NTI1 <- gls(structure ~ habitat, correlation = corBrownian(phy = PGLStree), data = PGLSdata_NTI, method = "ML")
-pglsModel_NTI2 <- gls(structure ~ adult_diet, correlation = corBrownian(phy = PGLStree), data = PGLSdata_NTI, method = "ML")
-#Get PGLS summary
-summary(pglsModel_NTI1)
-summary(pglsModel_NTI2)
+#Run PGLS analysis 
+pglsModel_NTI_Habitat <- gls(structure ~ habitat, correlation = corBrownian(phy = PGLStree), data = PGLSdata_NTI, method = "ML")
+pglsModel_NTI_Adult_Diet <- gls(structure ~ adult_diet, correlation = corBrownian(phy = PGLStree), data = PGLSdata_NTI, method = "ML")
+pglsModel_NTI_Larval_Diet <- gls(structure ~ adult_diet, correlation = corBrownian(phy = PGLStree), data = PGLSdata_NTI, method = "ML")
+#Get PGLS summary 
+summary(pglsModel_NTI_Habitat)
+summary(pglsModel_NTI_Adult_Diet)
+summary(pglsModel_NTI_Larval_Diet)
+
+#Create boxplots for traits vs. clustering matrix
+plot_Habitat_NTI <- boxplot(PGLSdata_NTI$structure ~ PGLSdata_NTI$habitat)
+plot_Adult_Diet_NTI <- boxplot(PGLSdata_NTI$structure ~ PGLSdata_NTI$adult_diet)
+plot_Larval_Diet_NTI <- boxplot(PGLSdata_NTI$structure ~ PGLSdata_NTI$larval_diet)
 
