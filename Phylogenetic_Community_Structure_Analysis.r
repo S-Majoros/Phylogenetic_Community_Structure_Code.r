@@ -321,8 +321,8 @@ dfAdephaga <- rbind(taxalistcomplete[[1]], taxalistcomplete[[3]], taxalistcomple
 dfPolyphaga <- rbind(taxalistcomplete[[2]], taxalistcomplete[[4]], taxalistcomplete[[5]], taxalistcomplete[[6]], taxalistcomplete[[7]],taxalistcomplete[[8]],taxalistcomplete[[9]],taxalistcomplete[[11]],taxalistcomplete[[13]],taxalistcomplete[[14]],taxalistcomplete[[15]],taxalistcomplete[[16]])
 
 #Randomly select outgroup sequences
-dfAdephaga_Outgroup <- sample_n(dfAdephaga, 3)
-dfPolyphaga_outgroup <- sample_n(dfPolyphaga, 3)    
+dfAdephaga_Outgroup <- sample_n(dfAdephaga, 1)
+dfPolyphaga_outgroup <- sample_n(dfPolyphaga, 1)    
                            
 #Put outgroup dataframes into a list
 Suborders <- list(dfPolyphaga_outgroup, dfAdephaga_Outgroup)                  
@@ -644,7 +644,7 @@ Family_matrices <- lapply(Family_matrices, unclass)
 
 #Calculate net relatedness index (NRI) and nearest taxon index (NTI) using ML Tree
 #Ensure ML tree is in correct format
-phy.dist <- lapply(ML_Trees, cophenetic)
+phy.dist <- lapply(Tree_Final, cophenetic)
 
 #Calculate NRI
 NRI_Results = lapply(1:length(phy.dist), function(i){
@@ -722,7 +722,7 @@ PGLSdata_NTI <- PGLSdata_NTI[match(PGLStree$tip.label, rownames(PGLSdata_NTI)), 
 #Run PGLS analysis 
 pglsModel_NTI_Habitat <- gls(structure ~ habitat, correlation = corBrownian(phy = PGLStree), data = PGLSdata_NTI, method = "ML")
 pglsModel_NTI_Adult_Diet <- gls(structure ~ adult_diet, correlation = corBrownian(phy = PGLStree), data = PGLSdata_NTI, method = "ML")
-pglsModel_NTI_Larval_Diet <- gls(structure ~ adult_diet, correlation = corBrownian(phy = PGLStree), data = PGLSdata_NTI, method = "ML")
+pglsModel_NTI_Larval_Diet <- gls(structure ~ larval_diet, correlation = corBrownian(phy = PGLStree), data = PGLSdata_NTI, method = "ML")
 #Get PGLS summary 
 summary(pglsModel_NTI_Habitat)
 summary(pglsModel_NTI_Adult_Diet)
