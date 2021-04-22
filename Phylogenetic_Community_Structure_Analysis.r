@@ -581,8 +581,6 @@ bs <- lapply(1:length(ml_families), function(i){
 })
 
 #Create a consensus bootstrap tree for each family
-#par(mfrow=c(2,1))
-#par(mar=c(1,1,3,1))
 bsTree <- lapply(1:length(bs), function(i){
   plotBS(midpoint(ml_families[[i]]$tree), bs[[i]], type = "p")
 })
