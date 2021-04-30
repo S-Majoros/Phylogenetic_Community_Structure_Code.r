@@ -581,10 +581,15 @@ bs <- lapply(1:length(ml_families), function(i){
 })
 
 #Create a consensus bootstrap tree for each family
-bsTree <- lapply(1:length(bs), function(i){
-  plotBS(midpoint(ml_families[[i]]$tree), bs[[i]], type = "p")
-})
+#bsTree <- lapply(1:length(bs), function(i){
+#  plotBS(midpoint(ml_families[[i]]$tree), bs[[i]], type = "p")
+#})
 
+#Step to create a majority rules consensus tree 
+bsTree <- lapply(1:length(ml_families), function(i){
+  consensus(bs[[i]], p=0.5, check.labels=TRUE) 
+})
+                   
 #Reorder outgroup dataframe list so it is in the same order as the trees
 l_outgroups <- l_outgroups[order(names(l_outgroups))]
 
