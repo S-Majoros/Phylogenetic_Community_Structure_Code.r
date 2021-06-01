@@ -1,6 +1,10 @@
-#pipeline for phylogenetic community structure analysis
+#Pipeline for phylogenetic community structure analysis
 #Centroid and alignment code adapted from Matthew Orton https://github.com/m-orton/Evolutionary-Rates-Analysis-Pipeline/blob/master/EvolutionaryComparisonPipelineSmallTaxa.R
 #Sequence trimming and outlier removal functions adapted from Jacqueline May https://github.com/jmay29/phylo/blob/master/refSeqTrim.R
+#Script by Sam Majoros. Email: smajoros@uoguelph.ca
+#Thank you to Cameron Nugent, Jacqueline May, and Matthew Orton for help with the code design.
+#Thank you to Sarah Adamowicz for help designing the project and coauthoring the paper. 
+#Thank you to Alex Smith and Kamil Chatila-Amos for helpful project disscussions. 
 
 #Part 1: Inputting and Filtering Data ----
 
