@@ -79,7 +79,7 @@ internalNGap <- foreach(i=1:nrow(dfOrder)) %do%
 nGapCheck <- sapply(internalNGap, function(x)length(x))
 nGapCheck <- which(nGapCheck>0)
 dfOrder <- dfOrder[-nGapCheck, ]
-#Remove redundant "BOLD" section from BIN column
+#Remove redundant "BOLD:" component from each BIN uri in the BIN column
 dfOrder$bin_uri <- substr(dfOrder$bin_uri, 6, 13)
 #Filter out sequences without coordinates
 containLatLon <- grep ("[0-9]", dfOrder$lat)
@@ -102,7 +102,7 @@ total_species_number <- dfOrder_Churchill[ , .(.N),by=.(family_name)]
 number_of_unique_species <- dfOrder_Churchill[ , .(number_of_species=length(unique(bin_uri))), by=family_name]
 #convert to dataframe
 number_of_unique_species <- as.data.frame(number_of_unique_species)
-#Filter down to families with more than 3 or more species
+#Filter down to families with 3 or more species
 number_of_unique_species <- filter(number_of_unique_species, number_of_unique_species$number_of_species > 2)
 
 #Create filter to filter down the order to families with three or more species in the subset
@@ -115,7 +115,7 @@ rm(number_of_unique_species, total_species_number, SubsetFilter_Churchill, conta
 
 #Part 2: Choosing a Centroid----
 
-#In this section we find a centroid sequence for each BIN present in the order (Not the subset)
+#In this section we find a centroid sequence for each BIN present in the Canada and Alaska dataset.
 #Create smaller dataframe with needed info
 dfBinList <- (dfOrder[, c("processid", "bin_uri", "nucleotides")])
 #Create groupings by BIN, each with different bin_uri
