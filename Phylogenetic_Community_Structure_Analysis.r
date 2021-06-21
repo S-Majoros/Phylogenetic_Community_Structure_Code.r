@@ -40,7 +40,7 @@ library(data.table)
 library(phytools)
 
 #Upload order data into R
-#Uncomment the following code to download data directly from BOLD, specifying the required geographical locations
+#Uncomment the following code to download data directly from BOLD, specifying the required geographical locations. The data I used was retrieved on June 19th, 2019. 
 #dfOrder <- read_tsv("http://www.boldsystems.org/index.php/API_Public/combined?taxon=Coleoptera&geo=Alaska|Canada&format=tsv")
 #Write file to hard disk
 #write_tsv(dfOrder, "Coleoptera_download_June19")
@@ -109,6 +109,10 @@ number_of_unique_species <- filter(number_of_unique_species, number_of_unique_sp
 dfOrder_filter <- which(dfOrder$family_name %in% number_of_unique_species$family_name)
 #Apply filter
 dfOrder <- dfOrder[dfOrder_filter, ]
+                    
+#Here I save the filtered data as a file. This data is provided on Github as the origional download is too large. 
+#To read in the pre filtered data, uncomment the following code. 
+#dfOrder <- read_tsv("Coleoptera_download_post_filtering")                    
 
 #Remove unneeded variables
 rm(number_of_unique_species, total_species_number, SubsetFilter_Churchill, containLatLon, endNGap, internalNGap, nGapCheck, split, startNGap, dfOrder_filter, i)
@@ -194,6 +198,10 @@ dfAllSeq <- Reduce(rbind, dfAllSeq)
 #Add an index column
 dfAllSeq$ind <- row.names(dfAllSeq)
 
+#Here I saved dfAllSeq to the file. This Centroid step takes a long time to complete, so the data post centroid is provided on Github
+#If you want to use the post centroid data, uncomment and run the following code.
+#dfAllSeq <- read_tsv("Post_Centroid")                     
+                        
 #Remove unneeded dataframes and variables
 rm(alignment1, binList, dfBinList, dfCentroid, dfOrder_bins, dfNonCentroid, dnaBINCentroid, dnaStringSet1, geneticDistanceCentroid, largeBinList, largeBinProcessid, binNumberCentroid, binSize,  centroidSeq, i, largeBin)
 
@@ -436,8 +444,6 @@ dfAllSeqWO <- merge(dfAllSeq, dfTaxaWO[, c(1:2)], by = "bin_uri", all.y = T)
 dfFamilyDNA <- merge(FamilyDNA, dfAllSeqWO, by = "bin_uri",  all.x = TRUE)
 #Rename the coloumn with your aligned sequences
 colnames(dfFamilyDNA)[2] <- "FinalSequences"
-#Rename the column with your aligned sequences
-colnames(dfFamilyDNA)[2] <- "FinalSequences"
 
 #create function to get reference names
 get_reference_names <- function(top_ref_num = 15){
@@ -556,7 +562,6 @@ list_of_models = unlist(lapply(model_tests, function(x){
 
 
 #get parameters for each model
-
 model_fit <- lapply(env, function(x){
   eval(get(list_of_models, x),x)
 })
@@ -584,14 +589,9 @@ bs <- lapply(1:length(ml_families), function(i){
   bootstrap.pml(ml_families[[i]], bs=1000, optNni=TRUE, multicore = FALSE)
 })
 
-#Create a consensus bootstrap tree for each family
-#bsTree <- lapply(1:length(bs), function(i){
-#  plotBS(midpoint(ml_families[[i]]$tree), bs[[i]], type = "p")
-#})
-
-#Step to create a majority rules consensus tree 
-bsTree <- lapply(1:length(ml_families), function(i){
-  consensus(bs[[i]], p=0.5, check.labels=TRUE) 
+#Step to create a maxCladeCred consensus tree 
+bsTree <- lapply(1:length(bs), function(i){
+  maxCladeCred(bs[[i]])
 })
                    
 #Reorder outgroup dataframe list so it is in the same order as the trees
