@@ -8,6 +8,7 @@
 
 #Part 1: Inputting and Filtering Data ----
 
+#This sections includes steps to load the needed packages, load the data into R, and to filter the data.
 #Packages needed for this analysis
 #If you do not already have these packages, uncomment the code and install.
 #install.packages("readr")
@@ -110,7 +111,7 @@ dfOrder_filter <- which(dfOrder$family_name %in% number_of_unique_species$family
 #Apply filter
 dfOrder <- dfOrder[dfOrder_filter, ]
                     
-#Here I save the filtered data as a file. This data is provided on Github as the origional download is too large. 
+#Here I save the filtered data as a file. This data is provided on Github as the original download is too large. 
 #To read in the pre filtered data, uncomment the following code. 
 #dfOrder <- read_tsv("Coleoptera_download_post_filtering")                    
 
@@ -119,7 +120,7 @@ rm(number_of_unique_species, total_species_number, SubsetFilter_Churchill, conta
 
 #Part 2: Choosing a Centroid----
 
-#In this section we find a centroid sequence for each BIN present in the Canada and Alaska dataset.
+#In this section we find a centroid sequence for each BIN present in the Canada and Alaska dataset. This includes running a multiple sequence alignment and computing a distance matrix. 
 #Create smaller dataframe with needed info
 dfBinList <- (dfOrder[, c("processid", "bin_uri", "nucleotides")])
 #Create groupings by BIN, each with different bin_uri
@@ -207,6 +208,7 @@ rm(alignment1, binList, dfBinList, dfCentroid, dfOrder_bins, dfNonCentroid, dnaB
 
 #Part 3: Alignment----
 
+#This sections includes code to trim the sequences and run a mutliple sequence alignment. The first alignment is a preliminary alignment that allows the sequences to be trimmed. The second is the final alignment once the outgroups have been added. 
 #Create a function to trim the sequences
 RefSeqTrim <- function(x) {
   #Create data frame for reference sequence
@@ -422,6 +424,7 @@ rm(alignmentFinal, alignmentNames, alignmentSequencesPlusRef, dnaStringSet3, fam
 
 #Part 4: Create Maximum Likelihood tree----
 
+#In this section, the data is saved to a fasta file for each family, distance matrices and neighbour joining trees are found, the best model and paramters are found for each family and maximum likelihood trees are generated. A bootstrap analysis is perfromed for each family and maxCladeCred consensus trees were found.
 #Create function to convert DNAStringSets to dataframes
 dna_string_to_df = function(dna_string_set){
   out_df = as.data.frame(dna_string_set[[1]])
@@ -613,6 +616,7 @@ rm(env, tree, model_tests, model_fit, dm, binNames, familyFileNames, familyList,
 
 #Part 5: NTI and NRI----
 
+#In this sections, family matrices are created and net relatedness indces(NRI) and nearest taxon indces (NTI) are calculated              
 #Create a filter for BINs found in Churchill
 ChurchillFilter <- which(dfAllSeq$bin_uri %in% dfOrder_Churchill$bin_uri)
 #Create a filter for the BINs not found in Churchill
@@ -668,6 +672,7 @@ rm(phy.dist, dfFilter_Churchill, dfFilter_NotChurchill, ChurchillFilter, NotChur
 
 #Part 6: Trait Analysis: ANOVA----
 
+#In this section, character matrices are loaded in and ANOVAs are performed
 #Read in character matrix
 Coleoptera_Matrix_NRI <- read_csv(file="C:/Users/Sam/Documents/Coleoptera_Matrix_NRI.csv")
 #Run ANOVAs for all traits 
@@ -693,6 +698,7 @@ summary(Coleoptera_ANOVA_NTI_Feeding_Larval)
 
 #Part 7: Trait Analysis: PGLS----
 
+#In this section, the phylogenetic tree created based on the literature is read in and phylogenetic generalized least squares analyses are performed 
 #Read in matrix
 PGLSdata_NRI <- read.csv("Coleoptera_Matrix_NRI.csv")
 #Read in tree
