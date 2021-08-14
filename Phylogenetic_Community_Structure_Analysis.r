@@ -208,7 +208,7 @@ rm(alignment1, binList, dfBinList, dfCentroid, dfOrder_bins, dfNonCentroid, dnaB
 
 #Part 3: Alignment----
 
-#This sections includes code to trim the sequences and run a mutliple sequence alignment. The first alignment is a preliminary alignment that allows the sequences to be trimmed. The second is the final alignment once the outgroups have been added. 
+#This sections includes code to trim the sequences and run a mutliple sequence alignment. The first alignment is a preliminary alignment that allows the sequences to be trimmed. The second is the final alignment once the outgroups have been added. Outgroups for each family were chosen from a different suborder of Coleoptera.
 #Create a function to trim the sequences
 RefSeqTrim <- function(x) {
   #Create data frame for reference sequence
@@ -616,7 +616,7 @@ rm(env, tree, model_tests, model_fit, dm, binNames, familyFileNames, familyList,
 
 #Part 5: NTI and NRI----
 
-#In this sections, family matrices are created and net relatedness indces(NRI) and nearest taxon indces (NTI) are calculated              
+#In this sections, family matrices are created and net relatedness indces(NRI) and nearest taxon indces (NTI) are calculated. NRI and NTI calculate the pairwise distance between two species and use this to estimate the community relatedness. NRI averages the evolutionary distances between all pairs of tips in the community, while NTI takes only the distances between nearest neighbours. A presence/absence matrix is created for each family in order to see how thier distribution relates to thier phylogenetic relationships.            
 #Create a filter for BINs found in Churchill
 ChurchillFilter <- which(dfAllSeq$bin_uri %in% dfOrder_Churchill$bin_uri)
 #Create a filter for the BINs not found in Churchill
@@ -672,7 +672,7 @@ rm(phy.dist, dfFilter_Churchill, dfFilter_NotChurchill, ChurchillFilter, NotChur
 
 #Part 6: Trait Analysis: ANOVA----
 
-#In this section, character matrices are loaded in and ANOVAs are performed
+#In this section, character matrices are loaded in and ANOVAs are performed. The ANOVA will tell us whether the phylogenetic community structure is related to the biological traits of the families. A P-value of > 0.5 indicates that families with that trait are significantly phylogenetically clustered or overdispersed. 
 #Read in character matrix
 Coleoptera_Matrix_NRI <- read_csv(file="C:/Users/Sam/Documents/Coleoptera_Matrix_NRI.csv")
 #Run ANOVAs for all traits 
@@ -698,7 +698,8 @@ summary(Coleoptera_ANOVA_NTI_Feeding_Larval)
 
 #Part 7: Trait Analysis: PGLS----
 
-#In this section, the phylogenetic tree created based on the literature is read in and phylogenetic generalized least squares analyses are performed 
+#In this section, the phylogenetic tree created based on the literature is read in and phylogenetic generalized least squares analyses are performed. 
+#The PGLS will tell us whether the phylogenetic community structure is related to the biological traits of the families, while taking into account the phylogenetic relationships. A P-value of > 0.5 indicates that families with that trait are significantly phylogenetically clustered or overdispersed.
 #Read in matrix
 PGLSdata_NRI <- read.csv("Coleoptera_Matrix_NRI.csv")
 #Read in tree
